@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Form Nhập Hồ Sơ - Phổ Thông</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+<div class="max-w-5xl mx-auto bg-white rounded-xl shadow p-6 space-y-6">
+  <h1 class="text-2xl font-bold text-center">FORM NHẬP HỒ SƠ - PHỔ THÔNG</h1>
+
+  <!-- KHỐI A: THÔNG TIN CÁ NHÂN -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">A. Thông tin cá nhân</legend>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label for="hoTen" class="block text-sm font-medium">Họ tên</label>
+        <input type="text" id="hoTen" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="tenKatakana" class="block text-sm font-medium">Họ tên Katakana</label>
+        <input type="text" id="tenKatakana" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="ngaySinh" class="block text-sm font-medium">Ngày sinh</label>
+        <input type="date" id="ngaySinh" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="tuoi" class="block text-sm font-medium">Tuổi</label>
+        <input type="number" id="tuoi" class="border rounded px-2 py-1 w-full" readonly />
+      </div>
+      <div>
+        <label for="gioiTinh" class="block text-sm font-medium">Giới tính</label>
+        <select id="gioiTinh" class="border rounded px-2 py-1 w-full">
+          <option value="Nam">Nam</option>
+          <option value="Nữ">Nữ</option>
+        </select>
+      </div>
+      <div>
+        <label for="honNhan" class="block text-sm font-medium">Hôn nhân</label>
+        <select id="honNhan" class="border rounded px-2 py-1 w-full">
+          <option value="Chưa kết hôn">Chưa kết hôn</option>
+          <option value="Đã kết hôn">Đã kết hôn</option>
+        </select>
+      </div>
+      <div>
+        <label for="diaChiTinh" class="block text-sm font-medium">Tỉnh</label>
+        <input type="text" id="diaChiTinh" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="diaChiHuyen" class="block text-sm font-medium">Huyện</label>
+        <input type="text" id="diaChiHuyen" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="diaChiXa" class="block text-sm font-medium">Xã</label>
+        <input type="text" id="diaChiXa" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="tonGiao" class="block text-sm font-medium">Tôn giáo</label>
+        <select id="tonGiao" class="border rounded px-2 py-1 w-full"
+          onchange="document.getElementById('tonGiaoKhac').style.display = this.value === 'Khác' ? 'inline-block' : 'none'">
+          <option value="Không">Không</option>
+          <option value="Thiên Chúa giáo">Thiên Chúa giáo</option>
+          <option value="Phật giáo">Phật giáo</option>
+          <option value="Khác">Khác</option>
+        </select>
+        <input type="text" id="tonGiaoKhac" placeholder="Nhập tôn giáo..." style="display:none;" class="border rounded px-2 py-1 ml-2" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI B: ĐẶC ĐIỂM CƠ THỂ -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">B. Đặc điểm cơ thể</legend>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label for="chieuCao" class="block text-sm font-medium">Chiều cao (cm)</label>
+        <input type="number" id="chieuCao" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="canNang" class="block text-sm font-medium">Cân nặng (kg)</label>
+        <input type="number" id="canNang" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="nhomMau" class="block text-sm font-medium">Nhóm máu</label>
+        <select id="nhomMau" class="border rounded px-2 py-1 w-full">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="O">O</option>
+          <option value="AB">AB</option>
+        </select>
+      </div>
+      <div>
+        <label for="tayThuan" class="block text-sm font-medium">Tay thuận</label>
+        <select id="tayThuan" class="border rounded px-2 py-1 w-full">
+          <option value="Phải">Phải</option>
+          <option value="Trái">Trái</option>
+        </select>
+      </div>
+      <div>
+        <label for="thiLucPhai" class="block text-sm font-medium">Thị lực phải</label>
+        <input type="text" id="thiLucPhai" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="thiLucTrai" class="block text-sm font-medium">Thị lực trái</label>
+        <input type="text" id="thiLucTrai" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="muMau" class="block text-sm font-medium">Mù màu</label>
+        <select id="muMau" class="border rounded px-2 py-1 w-full">
+          <option value="Không">Không</option>
+          <option value="Có">Có</option>
+        </select>
+      </div>
+      <div>
+        <label for="hutThuoc" class="block text-sm font-medium">Hút thuốc</label>
+        <select id="hutThuoc" class="border rounded px-2 py-1 w-full">
+          <option value="Không">Không</option>
+          <option value="Có">Có</option>
+        </select>
+      </div>
+      <div>
+        <label for="xamMinh" class="block text-sm font-medium">Hình xăm</label>
+        <select id="xamMinh" class="border rounded px-2 py-1 w-full">
+          <option value="Không">Không</option>
+          <option value="Có">Có</option>
+        </select>
+      </div>
+      <div>
+        <label for="ngayChupAnh" class="block text-sm font-medium">Ngày chụp ảnh</label>
+        <input type="date" id="ngayChupAnh" class="border rounded px-2 py-1 w-full" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI C: IQ -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">C. Kết quả kiểm tra IQ</legend>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div>
+        <label for="iq1" class="block text-sm font-medium">IQ 1</label>
+        <input type="text" id="iq1" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="iq2" class="block text-sm font-medium">IQ 2</label>
+        <input type="text" id="iq2" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="iq3" class="block text-sm font-medium">IQ 3</label>
+        <input type="text" id="iq3" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="iq4" class="block text-sm font-medium">IQ 4</label>
+        <input type="text" id="iq4" class="border rounded px-2 py-1 w-full" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI D: HỌC VẤN -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">D. Quá trình học vấn</legend>
+    <div class="mb-3">
+      <label for="bacHocCaoNhat" class="block text-sm font-medium">Bậc học cao nhất</label>
+      <select id="bacHocCaoNhat" class="border rounded px-2 py-1 w-full md:w-64">
+        <option value="高校">高校</option>
+        <option value="専門">専門</option>
+        <option value="短大">短大</option>
+        <option value="大学">大学</option>
+      </select>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1">Từ</th>
+            <th class="border px-2 py-1">Đến</th>
+            <th class="border px-2 py-1">Tỉnh/TP</th>
+            <th class="border px-2 py-1">Tên trường</th>
+            <th class="border px-2 py-1">Khoa/Ngành học</th>
+            <th class="border px-2 py-1"></th>
+          </tr>
+        </thead>
+        <tbody id="hocVanBody"></tbody>
+        <tfoot>
+          <tr class="bg-gray-50">
+            <td class="border px-2 py-1"><input type="text" id="tiengNhatTu" value="10/2026" class="border rounded px-2 py-1 w-full"></td>
+            <td class="border px-2 py-1"><input type="text" id="tiengNhatDen" value="現在" class="border rounded px-2 py-1 w-full" readonly></td>
+            <td class="border px-2 py-1">
+              <select id="tiengNhatDiaDiem" class="border rounded px-2 py-1 w-full">
+                <option value="HA NOI">HA NOI</option>
+                <option value="HO CHI MINH">HO CHI MINH</option>
+              </select>
+            </td>
+            <td class="border px-2 py-1"><input type="text" id="tiengNhatTruong" value="GICC日本語センター" class="border rounded px-2 py-1 w-full"></td>
+            <td class="border px-2 py-1"><input type="text" id="tiengNhatMon" value="日本語学習" class="border rounded px-2 py-1 w-full"></td>
+            <td class="border px-2 py-1"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <button type="button" id="btnThemHocVan" class="btn-them-dong mt-2 bg-blue-500 text-white px-3 py-1 rounded">+ Thêm dòng học vấn</button>
+    <datalist id="listNganhHoc">
+      <option value="普通科">
+      <option value="日本語学習">
+    </datalist>
+  </fieldset>
+
+  <!-- KHỐI E: QUÁ TRÌNH LÀM VIỆC -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">E. Quá trình làm việc</legend>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1">Từ</th>
+            <th class="border px-2 py-1">Đến</th>
+            <th class="border px-2 py-1">Tỉnh làm việc</th>
+            <th class="border px-2 py-1">Tên công ty</th>
+            <th class="border px-2 py-1">Công việc</th>
+            <th class="border px-2 py-1">Lương tháng</th>
+            <th class="border px-2 py-1">Thời gian kinh nghiệm</th>
+            <th class="border px-2 py-1"></th>
+          </tr>
+        </thead>
+        <tbody id="quaTrinhLamViecBody"></tbody>
+      </table>
+    </div>
+    <button type="button" id="btnThemCongViec" class="btn-them-dong mt-2 bg-blue-500 text-white px-3 py-1 rounded">+ Thêm dòng công việc</button>
+  </fieldset>
+
+  <!-- KHỐI F: BẰNG CẤP -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">F. Bằng cấp/Chứng chỉ</legend>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1">Tên bằng cấp</th>
+            <th class="border px-2 py-1">Ngày cấp</th>
+            <th class="border px-2 py-1"></th>
+          </tr>
+        </thead>
+        <tbody id="bangCapBody"></tbody>
+      </table>
+    </div>
+    <button type="button" id="btnThemBangCap" class="btn-them-dong mt-2 bg-blue-500 text-white px-3 py-1 rounded">+ Thêm bằng cấp</button>
+  </fieldset>
+
+  <!-- KHỐI G: GIA ĐÌNH -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">G. Thông tin gia đình</legend>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1">Mối quan hệ (間柄)</th>
+            <th class="border px-2 py-1">Tuổi (年齢)</th>
+            <th class="border px-2 py-1">Sống chung (同居)</th>
+            <th class="border px-2 py-1">Nghề nghiệp (職業)</th>
+            <th class="border px-2 py-1">Thu nhập hàng tháng (月収)</th>
+            <th class="border px-2 py-1">Đã mất (死去)</th>
+            <th class="border px-2 py-1"></th>
+          </tr>
+        </thead>
+        <tbody id="giaDinhBody"></tbody>
+      </table>
+    </div>
+    <button type="button" id="btnThemGiaDinh" class="btn-them-dong mt-2 bg-blue-500 text-white px-3 py-1 rounded">+ Thêm thành viên</button>
+  </fieldset>
+
+  <!-- KHỐI H: XUẤT NGOẠI & THỂ THAO -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">H. Kinh nghiệm xuất ngoại / Thể thao</legend>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label for="xuatNgoai" class="block text-sm font-medium">Đã từng xuất ngoại</label>
+        <select id="xuatNgoai" class="border rounded px-2 py-1 w-full">
+          <option value="Không">Không</option>
+          <option value="Có">Có</option>
+        </select>
+      </div>
+      <div>
+        <label for="xuatNgoaiNuoc" class="block text-sm font-medium">Nước đã đến</label>
+        <input type="text" id="xuatNgoaiNuoc" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="xuatNgoaiNoiDung" class="block text-sm font-medium">Nội dung</label>
+        <input type="text" id="xuatNgoaiNoiDung" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="tenTheThao" class="block text-sm font-medium">Môn thể thao</label>
+        <input type="text" id="tenTheThao" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="soNamTheThao" class="block text-sm font-medium">Số năm chơi</label>
+        <input type="number" id="soNamTheThao" class="border rounded px-2 py-1 w-full" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI I: NGƯỜI QUEN Ở NHẬT & TIẾNG NHẬT -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">I. Người quen ở Nhật / Tiếng Nhật</legend>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+      <div>
+        <label for="coNguoiQuenNhat" class="block text-sm font-medium">Có người quen ở Nhật</label>
+        <select id="coNguoiQuenNhat" class="border rounded px-2 py-1 w-full"
+          onchange="document.querySelectorAll('.nguoiQuenNhat-extra').forEach(function(el){ el.style.display = this.value === 'Có' ? 'block' : 'none'; }.bind(this))">
+          <option value="Không">Không</option>
+          <option value="Có">Có</option>
+        </select>
+      </div>
+      <div class="nguoiQuenNhat-extra" style="display:none;">
+        <label for="nguoiQuenQuanHe" class="block text-sm font-medium">Quan hệ</label>
+        <input type="text" id="nguoiQuenQuanHe" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div class="nguoiQuenNhat-extra" style="display:none;">
+        <label for="nguoiQuenTuCach" class="block text-sm font-medium">Tư cách lưu trú</label>
+        <input type="text" id="nguoiQuenTuCach" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div class="nguoiQuenNhat-extra" style="display:none;">
+        <label for="nguoiQuenNoiO" class="block text-sm font-medium">Nơi ở tại Nhật</label>
+        <input type="text" id="nguoiQuenNoiO" class="border rounded px-2 py-1 w-full" />
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label for="thoiGianHocTiengNhat" class="block text-sm font-medium">Thời gian học tiếng Nhật</label>
+        <input type="text" id="thoiGianHocTiengNhat" placeholder="VD: 1週間, 2週間, 1ヶ月, 2ヶ月" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="baiMinna" class="block text-sm font-medium">Bài Minna</label>
+        <input type="number" id="baiMinna" placeholder="Số bài học (VD: 8)" class="border rounded px-2 py-1 w-32 ml-2" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI J: SỐNG TẬP THỂ -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">J. Kinh nghiệm sống tập thể</legend>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label for="songTapTheNam" class="block text-sm font-medium">Thời gian</label>
+        <input type="text" id="songTapTheNam" placeholder="VD: 2年, 5ヶ月, 6 tháng" value="2年" class="border rounded px-2 py-1.5 w-36">
+      </div>
+      <div>
+        <label for="songTapTheLoai" class="block text-sm font-medium">Loại hình</label>
+        <select id="songTapTheLoai" class="border rounded px-2 py-1.5">
+          <option value="軍隊の寮">Ký túc xá quân đội (軍隊の寮)</option>
+          <option value="日本語センターの寮">KTX trung tâm tiếng Nhật (日本語センターの寮)</option>
+          <option value="アパート">Căn hộ / Phòng trọ (アパート)</option>
+          <option value="会社の寮" selected>KTX công ty (会社の寮)</option>
+        </select>
+      </div>
+      <div>
+        <label for="songTapTheSoNguoi" class="block text-sm font-medium">Số người</label>
+        <input type="number" id="songTapTheSoNguoi" value="6" min="1" max="50" class="border rounded px-2 py-1.5 w-24 text-center font-bold"> người/phòng
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- KHỐI K: SỞ THÍCH -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">K. Sở thích</legend>
+    <select id="selectSoThich" onchange="xuLyDoiSoThich(this.value)" class="border rounded px-2 py-1.5">
+      <option value="サッカー" selected>サッカー (Bóng đá)</option>
+      <option value="音楽">音楽 (Âm nhạc)</option>
+      <option value="料理">料理 (Nấu ăn)</option>
+      <option value="映画">映画 (Xem phim)</option>
+      <option value="バドミントン">バドミントン (Cầu lông)</option>
+      <option value="ジョギング">ジョギング (Chạy bộ)</option>
+      <option value="読書">読書 (Đọc sách)</option>
+      <option value="khac">-- Tự nhập khác --</option>
+    </select>
+    <input type="text" id="soThich" value="サッカー" readonly class="border rounded px-2 py-1.5 bg-gray-100 text-gray-600 ml-2" />
+  </fieldset>
+
+  <!-- KHỐI L: TỰ PHÂN TÍCH BẢN THÂN -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">L. Tự phân tích bản thân</legend>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <label for="tinhCach" class="block text-sm font-medium">Tính cách</label>
+        <select id="selectTinhCach" onchange="if(this.value) document.getElementById('tinhCach').value = this.value" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
+          <option value="">-- Chọn mẫu câu tính cách --</option>
+          <option value="明るく前向きで、誰とでもすぐに仲良くなれます。">Vui vẻ, hòa đồng, tích cực</option>
+          <option value="真面目で素直、責任感が強く任された仕事は最後までやり遂げます。">Chăm chỉ, thật thà, trách nhiệm</option>
+          <option value="忍耐力があり、体力に自信があって粘り強い性格です。">Kiên trì, chịu khó, thể lực tốt</option>
+          <option value="几帳面で手先が器用、集中力が高く作業ミスが少ないです。">Cẩn thận, khéo tay, tập trung</option>
+        </select>
+        <textarea id="tinhCach" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
+      </div>
+      <div>
+        <label for="quanTamNhat" class="block text-sm font-medium">Điều quan tâm nhất</label>
+        <select id="selectQuanTam" onchange="if(this.value) document.getElementById('quanTamNhat').value = this.value" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
+          <option value="">-- Chọn mẫu câu quan tâm nước Nhật --</option>
+          <option value="日本の先端科学技術、安全で清潔な生活環境。">Công nghệ hiện đại & môi trường sống</option>
+          <option value="伝統的な日本文化、桜の美しい景色、富士山。">Văn hóa truyền thống, hoa anh đào, núi Phú Sĩ</option>
+          <option value="日本人の時間厳守、高い労働倫理と仕事への強い責任感。">Tác phong làm việc đúng giờ & tính kỷ luật</option>
+          <option value="発展した経済、和食や日本の食文化。">Nền kinh tế phát triển & văn hóa ẩm thực</option>
+        </select>
+        <textarea id="quanTamNhat" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- NÚT CUỐI FORM -->
+  <div class="flex gap-3">
+    <button type="button" id="btnLuuHoSo" class="bg-green-600 text-white px-4 py-2 rounded font-semibold">Lưu hồ sơ</button>
+    <button type="button" id="btnXuatExcelFull" class="bg-indigo-600 text-white px-4 py-2 rounded font-semibold">Xuất Excel</button>
+  </div>
+
+  <!-- DANH SÁCH HỌC SINH -->
+  <fieldset class="border rounded p-4">
+    <legend class="font-semibold px-2">Danh sách học sinh đã lưu</legend>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1">Họ tên</th>
+            <th class="border px-2 py-1">Ngày sinh</th>
+            <th class="border px-2 py-1">Giới tính</th>
+            <th class="border px-2 py-1"></th>
+          </tr>
+        </thead>
+        <tbody id="danhSachHocSinhBody"></tbody>
+      </table>
+    </div>
+  </fieldset>
+</div>
+
+<script>
+  // Logic khóa/mở ô Sở thích (Khối K)
+  function xuLyDoiSoThich(value) {
+    var oSoThich = document.getElementById('soThich');
+    if (value === 'khac') {
+      oSoThich.value = '';
+      oSoThich.readOnly = false;
+      oSoThich.classList.remove('bg-gray-100', 'text-gray-600');
+      oSoThich.classList.add('bg-white');
+      oSoThich.focus();
+    } else {
+      oSoThich.value = value;
+      oSoThich.readOnly = true;
+      oSoThich.classList.remove('bg-white');
+      oSoThich.classList.add('bg-gray-100', 'text-gray-600');
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="js/katakana.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/excel-export.js"></script>
+</body>
+</html>

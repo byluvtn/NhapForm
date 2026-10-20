@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form Nhập Hồ Sơ - Nghiệp Đoàn SCI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+        }
+
+        .form-section {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            background: #ffffff;
+        }
+
+        .form-section h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1d4ed8;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 0.5rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- Thanh điều hướng -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center gap-2 px-4 py-3">
+            <a href="../index.html"
+                class="px-4 py-2 rounded-md font-semibold text-gray-700 hover:bg-gray-100 transition">⬅️ Về Trang
+                Chủ</a>
+            <span class="px-4 py-2 rounded-md bg-blue-600 text-white font-bold">Dạng Nghiệp Đoàn SCI</span>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">📋 PHIẾU NHẬP HỒ SƠ - NGHIỆP ĐOÀN SCI</h1>
+
+        <form id="formHoSoSCI">
+
+            <!-- KHỐI A: THÔNG TIN CÁ NHÂN -->
+            <div class="form-section">
+                <h2>A. Thông Tin Cá Nhân</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="hoTen">Họ và tên (chữ in hoa)</label>
+                        <input type="text" id="hoTen" name="hoTen" placeholder="NGUYEN VAN A" />
+                    </div>
+                    <div>
+                        <label for="hoTenKatakana">Họ tên Katakana</label>
+                        <input type="text" id="hoTenKatakana" name="hoTenKatakana" placeholder="グエン ヴァン A" />
+                    </div>
+                    <div>
+                        <label for="ngaySinh">Ngày sinh</label>
+                        <input type="date" id="ngaySinh" name="ngaySinh" />
+                    </div>
+                    <div>
+                        <label for="gioiTinh">Giới tính</label>
+                        <select id="gioiTinh" name="gioiTinh">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="noiSinh">Nơi sinh</label>
+                        <input type="text" id="noiSinh" name="noiSinh" />
+                    </div>
+                    <div>
+                        <label for="danToc">Dân tộc</label>
+                        <input type="text" id="danToc" name="danToc" value="Kinh" />
+                    </div>
+                    <div class="md:col-span-3">
+                        <label for="diaChi">Địa chỉ thường trú</label>
+                        <input type="text" id="diaChi" name="diaChi" />
+                    </div>
+                    <div class="md:col-span-3">
+                        <label for="email">Email</label>
+                        <input type="text" id="email" name="email" placeholder="example@email.com" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI B: THỂ LỰC & BỆNH LÝ -->
+            <div class="form-section">
+                <h2>B. Thể Lực & Bệnh Lý</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="chieuCao">Chiều cao (cm)</label>
+                        <input type="number" id="chieuCao" name="chieuCao" />
+                    </div>
+                    <div>
+                        <label for="canNang">Cân nặng (kg)</label>
+                        <input type="number" id="canNang" name="canNang" />
+                    </div>
+                    <div>
+                        <label for="nhomMau">Nhóm máu</label>
+                        <select id="nhomMau" name="nhomMau">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="O">O</option>
+                            <option value="AB">AB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tiền sử bệnh -->
+                <div class="mb-4">
+                    <label>Tiền sử bệnh (既往症)</label>
+                    <div class="radio-group mb-2">
+                        <label><input type="radio" name="tienSuBenhCoKhong" value="無" checked
+                                onchange="toggleDetail('tienSuBenh')" /> 無 (Không)</label>
+                        <label><input type="radio" name="tienSuBenhCoKhong" value="有"
+                                onchange="toggleDetail('tienSuBenh')" /> 有 (Có)</label>
+                    </div>
+                    <input type="text" id="tienSuBenhChiTiet" name="tienSuBenhChiTiet"
+                        placeholder="Nhập chi tiết trong ngoặc ( )" class="hidden" />
+                </div>
+
+                <!-- Dị ứng -->
+                <div class="mb-4">
+                    <label>Dị ứng (アレルギー)</label>
+                    <div class="radio-group mb-2">
+                        <label><input type="radio" name="diUngCoKhong" value="無" checked
+                                onchange="toggleDetail('diUng')" /> 無 (Không)</label>
+                        <label><input type="radio" name="diUngCoKhong" value="有" onchange="toggleDetail('diUng')" /> 有
+                            (Có)</label>
+                    </div>
+                    <input type="text" id="diUngChiTiet" name="diUngChiTiet" placeholder="Nhập chi tiết trong ngoặc ( )"
+                        class="hidden" />
+                </div>
+
+                <!-- Bệnh da liễu -->
+                <div class="mb-4">
+                    <label>Bệnh da liễu (皮膚病)</label>
+                    <div class="radio-group mb-2">
+                        <label><input type="radio" name="benhDaLieuCoKhong" value="無" checked
+                                onchange="toggleDetail('benhDaLieu')" /> 無 (Không)</label>
+                        <label><input type="radio" name="benhDaLieuCoKhong" value="有"
+                                onchange="toggleDetail('benhDaLieu')" /> 有 (Có)</label>
+                    </div>
+                    <input type="text" id="benhDaLieuChiTiet" name="benhDaLieuChiTiet"
+                        placeholder="Nhập chi tiết trong ngoặc ( )" class="hidden" />
+                </div>
+
+                <!-- Môn thể thao -->
+                <div>
+                    <label for="monTheThaoChon">Môn thể thao sở trường (得意なスポーツ)</label>
+                    <select id="monTheThaoChon" onchange="chonMonTheThao()" class="mb-2">
+                        <option value="">-- Chọn nhanh --</option>
+                        <option value="サッカー">Bóng đá (サッカー)</option>
+                        <option value="バドミントン">Cầu lông (バドミントン)</option>
+                        <option value="バレーボール">Bóng chuyền (バレーボール)</option>
+                        <option value="水泳">Bơi lội (水泳)</option>
+                        <option value="ジョギング">Chạy bộ (ジョギング)</option>
+                        <option value="無">Không chơi (無)</option>
+                    </select>
+                    <input type="text" id="monTheThao" name="monTheThao"
+                        placeholder="Môn thể thao (có thể sửa tự do)" />
+                </div>
+            </div>
+
+            <!-- KHỐI C: HÔN NHÂN / ĐỜI TƯ -->
+            <div class="form-section">
+                <h2>C. Hôn Nhân / Đời Tư</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="tinhTrangHonNhan">Tình trạng hôn nhân</label>
+                        <select id="tinhTrangHonNhan" name="tinhTrangHonNhan">
+                            <option value="Chưa kết hôn">Chưa kết hôn (未婚)</option>
+                            <option value="Đã kết hôn">Đã kết hôn (既婚)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="soCon">Số con</label>
+                        <input type="number" id="soCon" name="soCon" value="0" />
+                    </div>
+                    <div>
+                        <label for="tonGiao">Tôn giáo</label>
+                        <input type="text" id="tonGiao" name="tonGiao" placeholder="Không / Phật giáo / ..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI D: HỌC VẤN -->
+            <div class="form-section">
+                <h2>D. Học Vấn (学歴)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                    <div>
+                        <label for="hocVanThangBD">Tháng bắt đầu</label>
+                        <select id="hocVanThangBD" name="hocVanThangBD">
+                            <option value="">--</option>
+                            <script>for (let m = 1; m <= 12; m++)document.write(`<option value="${m}">${m}</option>`);</script>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hocVanNamBD">Năm bắt đầu</label>
+                        <input type="number" id="hocVanNamBD" name="hocVanNamBD" placeholder="2022" />
+                    </div>
+                    <div>
+                        <label for="hocVanThangKT">Tháng kết thúc</label>
+                        <select id="hocVanThangKT" name="hocVanThangKT">
+                            <option value="">--</option>
+                            <script>for (let m = 1; m <= 12; m++)document.write(`<option value="${m}">${m}</option>`);</script>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hocVanNamKT">Năm kết thúc</label>
+                        <input type="number" id="hocVanNamKT" name="hocVanNamKT" placeholder="2025" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                    <div>
+                        <label for="truongHoc">Trường học</label>
+                        <input type="text" id="truongHoc" name="truongHoc" placeholder="Tên trường" />
+                    </div>
+                    <div>
+                        <label for="chuyenNganh">Chuyên ngành</label>
+                        <input type="text" id="chuyenNganh" name="chuyenNganh" placeholder="Chuyên ngành đã học" />
+                    </div>
+                </div>
+                <div>
+                    <label for="noiDungHoc">Kỷ niệm / Nội dung học (学習内容)</label>
+                    <textarea id="noiDungHoc" name="noiDungHoc" rows="2">数学、理学、化学など</textarea>
+                </div>
+            </div>
+
+            <!-- KHỐI E: KẾ HOẠCH ĐI NHẬT / TÀI CHÍNH -->
+            <div class="form-section">
+                <h2>E. Kế Hoạch Đi Nhật / Tài Chính</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="mucDichDiNhat">Mục đích đi Nhật</label>
+                        <input type="text" id="mucDichDiNhat" name="mucDichDiNhat"
+                            placeholder="Học tập, làm việc, tiết kiệm..." />
+                    </div>
+                    <div>
+                        <label for="nguonTaiChinhBanThan">Tài chính tự có (%)</label>
+                        <input type="number" id="nguonTaiChinhBanThan" name="nguonTaiChinhBanThan" min="0" max="100"
+                            placeholder="VD: 30" />
+                    </div>
+                    <div>
+                        <label for="nguonTaiChinhVay">Tài chính vay ngân hàng (%)</label>
+                        <input type="number" id="nguonTaiChinhVay" name="nguonTaiChinhVay" min="0" max="100"
+                            placeholder="VD: 70" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI F: PHÂN TÍCH BẢN THÂN -->
+            <div class="form-section">
+                <h2>F. Phân Tích Bản Thân (自己分析)</h2>
+
+                <div class="mb-4">
+                    <label for="mauCauPhanTich">Chọn mẫu câu gợi ý (có thể chọn rồi chỉnh sửa)</label>
+                    <select id="mauCauPhanTich" onchange="chonMauPhanTich(this.value)">
+                        <option value="">-- Chọn mẫu câu --</option>
+                        <option
+                            value="Tôi là người chăm chỉ, chịu được áp lực công việc cao và luôn hoàn thành đúng tiến độ.">
+                            Chăm chỉ, chịu áp lực tốt</option>
+                        <option
+                            value="Tôi có tinh thần hợp tác cao, dễ hòa nhập với tập thể và tôn trọng quy tắc chung.">
+                            Tinh thần hợp tác, hòa nhập tốt</option>
+                        <option value="Tôi là người cẩn thận, tỉ mỉ trong công việc và luôn chú ý đến chi tiết nhỏ.">Cẩn
+                            thận, tỉ mỉ</option>
+                        <option
+                            value="Tôi có khả năng thích nghi nhanh với môi trường mới và sẵn sàng học hỏi những điều mới.">
+                            Thích nghi nhanh, cầu tiến</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="phanTichBanThan1">Điểm mạnh của bản thân</label>
+                        <textarea id="phanTichBanThan1" name="phanTichBanThan1" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="phanTichBanThan2">Điểm yếu cần cải thiện</label>
+                        <textarea id="phanTichBanThan2" name="phanTichBanThan2" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="phanTichBanThan3">Lý do muốn tham gia nghiệp đoàn SCI</label>
+                        <textarea id="phanTichBanThan3" name="phanTichBanThan3" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="phanTichBanThan4">Mục tiêu sau khi hoàn thành chương trình</label>
+                        <textarea id="phanTichBanThan4" name="phanTichBanThan4" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHỐI G: 7 CÂU HỎI KHẢO SÁT SCI -->
+            <div class="form-section">
+                <h2>G. Khảo Sát SCI (7 câu hỏi)</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="khaoSat1">1. Bạn đã từng đi làm việc hoặc du học ở nước ngoài chưa?</label>
+                        <input type="text" id="khaoSat1" name="khaoSat1" />
+                    </div>
+                    <div>
+                        <label for="khaoSat2">2. Gia đình bạn có ai từng đi Nhật chưa? Nếu có, ai và làm ở đâu?</label>
+                        <input type="text" id="khaoSat2" name="khaoSat2" />
+                    </div>
+                    <div>
+                        <label for="khaoSat3">3. Bạn đã chuẩn bị tài chính cho chuyến đi như thế nào?</label>
+                        <input type="text" id="khaoSat3" name="khaoSat3" />
+                    </div>
+                    <div>
+                        <label for="khaoSat4">4. Bạn có thể xa gia đình trong thời gian dài (1-3 năm) không?</label>
+                        <input type="text" id="khaoSat4" name="khaoSat4" />
+                    </div>
+                    <div>
+                        <label for="khaoSat5">5. Bạn mong muốn mức thu nhập hàng tháng là bao nhiêu?</label>
+                        <input type="text" id="khaoSat5" name="khaoSat5" />
+                    </div>
+                    <div>
+                        <label for="khaoSat6">6. Bạn có kế hoạch gì sau khi hoàn thành hợp đồng tại Nhật?</label>
+                        <input type="text" id="khaoSat6" name="khaoSat6" />
+                    </div>
+                    <div>
+                        <label for="khaoSat7">7. Bạn có cam kết tuân thủ nội quy và pháp luật Nhật Bản không?</label>
+                        <input type="text" id="khaoSat7" name="khaoSat7" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- NÚT LƯU -->
+            <div class="text-center my-6">
+                <button type="button" id="btnLuuHoSo"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition">
+                    💾 Lưu &amp; Nhập tiếp
+                </button>
+            </div>
+        </form>
+
+        <!-- DANH SÁCH HỌC SINH ĐÃ LƯU -->
+        <div class="form-section">
+            <h2>📑 Danh Sách Hồ Sơ Đã Lưu</h2>
+            <div id="danhSachHocSinhContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Hiện/ẩn ô chi tiết khi chọn "Có" (有) cho các mục Tiền sử bệnh / Dị ứng / Bệnh da liễu
+        function toggleDetail(prefix) {
+            const radios = document.getElementsByName(prefix + 'CoKhong');
+            const detailInput = document.getElementById(prefix + 'ChiTiet');
+            let chonCo = false;
+            radios.forEach(r => { if (r.checked && r.value === '有') chonCo = true; });
+            if (chonCo) {
+                detailInput.classList.remove('hidden');
+            } else {
+                detailInput.classList.add('hidden');
+                detailInput.value = '';
+            }
+        }
+
+        // Tự động điền tiếng Nhật khi chọn môn thể thao từ dropdown
+        function chonMonTheThao() {
+            const select = document.getElementById('monTheThaoChon');
+            const input = document.getElementById('monTheThao');
+            if (select.value) {
+                input.value = select.value;
+            }
+        }
+
+        // Điền mẫu câu gợi ý vào ô Điểm mạnh (phanTichBanThan1) khi chọn từ menu cuộn
+        function chonMauPhanTich(value) {
+            if (value) {
+                document.getElementById('phanTichBanThan1').value = value;
+            }
+        }
+    </script>
+
+    <!-- Script dùng chung -->
+    <script src="js/constants.js"></script>
+    <script src="js/templates.js"></script>
+    <script src="js/katakana.js"></script>
+    <script src="js/helpers.js"></script>
+    <script src="js/storage.js"></script>
+</body>
+
+</html>
