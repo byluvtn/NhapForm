@@ -260,7 +260,7 @@
             <th class="border px-2 py-1">Nghề nghiệp (職業)</th>
             <th class="border px-2 py-1">Thu nhập hàng tháng (月収)</th>
             <th class="border px-2 py-1">Đã mất (死去)</th>
-            <th class="border px-2 py-1"></th>
+            <th class="border px-2 py-1">Xóa</th>
           </tr>
         </thead>
         <tbody id="giaDinhBody"></tbody>
@@ -304,34 +304,42 @@
     <legend class="font-semibold px-2">I. Người quen ở Nhật / Tiếng Nhật</legend>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
       <div>
-        <label for="coNguoiQuenNhat" class="block text-sm font-medium">Có người quen ở Nhật</label>
-        <select id="coNguoiQuenNhat" class="border rounded px-2 py-1 w-full"
-          onchange="document.querySelectorAll('.nguoiQuenNhat-extra').forEach(function(el){ el.style.display = this.value === 'Có' ? 'block' : 'none'; }.bind(this))">
-          <option value="Không">Không</option>
-          <option value="Có">Có</option>
+        <label for="nguoiQuenNhat" class="block text-sm font-medium">Có người quen ở Nhật</label>
+        <select id="nguoiQuenNhat" class="border rounded px-2 py-1 w-full"
+          onchange="document.querySelectorAll('.nguoiQuenNhat-extra').forEach(function(el){ el.style.display = this.value === '有' ? 'block' : 'none'; }.bind(this))">
+          <option value="無">Không (無)</option>
+          <option value="有">Có (有)</option>
         </select>
       </div>
       <div class="nguoiQuenNhat-extra" style="display:none;">
+        <label for="nguoiQuenSoLuong" class="block text-sm font-medium">Số lượng người</label>
+        <input type="number" id="nguoiQuenSoLuong" value="1" min="1" max="10" placeholder="Số người" class="border rounded px-2 py-1 w-24" />
+      </div>
+      <div class="nguoiQuenNhat-extra" style="display:none;">
         <label for="nguoiQuenQuanHe" class="block text-sm font-medium">Quan hệ</label>
-        <input type="text" id="nguoiQuenQuanHe" class="border rounded px-2 py-1 w-full" />
+        <input type="text" id="nguoiQuenQuanHe" placeholder="VD: 従兄弟, 兄" class="border rounded px-2 py-1 w-full" />
       </div>
       <div class="nguoiQuenNhat-extra" style="display:none;">
         <label for="nguoiQuenTuCach" class="block text-sm font-medium">Tư cách lưu trú</label>
-        <input type="text" id="nguoiQuenTuCach" class="border rounded px-2 py-1 w-full" />
+        <input type="text" id="nguoiQuenTuCach" placeholder="VD: 実習生" class="border rounded px-2 py-1 w-full" />
       </div>
       <div class="nguoiQuenNhat-extra" style="display:none;">
-        <label for="nguoiQuenNoiO" class="block text-sm font-medium">Nơi ở tại Nhật</label>
-        <input type="text" id="nguoiQuenNoiO" class="border rounded px-2 py-1 w-full" />
+        <label for="nguoiQuenCongViec" class="block text-sm font-medium">Công việc</label>
+        <input type="text" id="nguoiQuenCongViec" placeholder="VD: 機械加工, 建設, 農業, IT..." class="border rounded px-2 py-1 w-full">
+      </div>
+      <div class="nguoiQuenNhat-extra" style="display:none;">
+        <label for="nguoiQuenNoiO" class="block text-sm font-medium">Nơi ở tại Nhật (Tỉnh)</label>
+        <input type="text" id="nguoiQuenNoiO" placeholder="VD: 愛知県" class="border rounded px-2 py-1 w-full" />
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div>
         <label for="thoiGianHocTiengNhat" class="block text-sm font-medium">Thời gian học tiếng Nhật</label>
-        <input type="text" id="thoiGianHocTiengNhat" placeholder="VD: 1週間, 2週間, 1ヶ月, 2ヶ月" class="border rounded px-2 py-1 w-full" />
+        <input type="text" id="thoiGianHocTiengNhat" placeholder="VD: 1週間, 1ヶ月" class="border rounded px-2 py-1 w-full" />
       </div>
       <div>
         <label for="baiMinna" class="block text-sm font-medium">Bài Minna</label>
-        <input type="number" id="baiMinna" placeholder="Số bài học (VD: 8)" class="border rounded px-2 py-1 w-32 ml-2" />
+        <input type="number" id="baiMinna" placeholder="Bài số..." class="border rounded px-2 py-1 w-32 ml-2" />
       </div>
     </div>
   </fieldset>
@@ -382,23 +390,36 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
         <label for="tinhCach" class="block text-sm font-medium">Tính cách</label>
-        <select id="selectTinhCach" onchange="if(this.value) document.getElementById('tinhCach').value = this.value" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
+        <select id="selectTinhCach" onchange="xuLyChonTinhCach(this.value)" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
           <option value="">-- Chọn mẫu câu tính cách --</option>
-          <option value="明るく前向きで、誰とでもすぐに仲良くなれます。">Vui vẻ, hòa đồng, tích cực</option>
-          <option value="真面目で素直、責任感が強く任された仕事は最後までやり遂げます。">Chăm chỉ, thật thà, trách nhiệm</option>
-          <option value="忍耐力があり、体力に自信があって粘り強い性格です。">Kiên trì, chịu khó, thể lực tốt</option>
-          <option value="几帳面で手先が器用、集中力が高く作業ミスが少ないです。">Cẩn thận, khéo tay, tập trung</option>
+          <option value="明るく前向きで、誰とでもすぐに仲良くなれます。">1. Vui vẻ, hòa đồng, tích cực</option>
+          <option value="真面目で素直、責任感が強く任された仕事は最後までやり遂げます。">2. Chăm chỉ, thật thà, trách nhiệm</option>
+          <option value="忍耐力があり、体力に自信があって粘り強い性格です。">3. Kiên trì, chịu khó, thể lực tốt</option>
+          <option value="几帳面で手先が器用、集中力が高く作業ミスが少ないです。">4. Cẩn thận, khéo tay, tập trung</option>
+          <option value="向上心が高く、新しい技術や仕事を素早く吸収できます。">5. Cầu tiến, ham học hỏi, tiếp thu nhanh</option>
+          <option value="素直で礼儀正しく、先輩や上司の指示をよく守ります。">6. Ngoan ngoãn, lễ phép, tuân thủ chỉ đạo</option>
+          <option value="協調性があり、チームワークを大切にして作業を進めます。">7. Hòa đồng, coi trọng làm việc nhóm</option>
+          <option value="冷静で慎重、どんな状況でも落ち着いて行動できます。">8. Điềm đạm, cẩn trọng, bình tĩnh</option>
+          <option value="時間や規則を厳格に守り、無遅刻無欠勤で真面目に働きます。">9. Kỷ luật cao, đúng giờ, không nghỉ vô cớ</option>
+          <option value="tu_nhap">10. -- Tự nhập khác --</option>
         </select>
         <textarea id="tinhCach" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
       </div>
       <div>
         <label for="quanTamNhat" class="block text-sm font-medium">Điều quan tâm nhất</label>
-        <select id="selectQuanTam" onchange="if(this.value) document.getElementById('quanTamNhat').value = this.value" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
+        <select id="selectQuanTam" onchange="if(this.value === 'tu_nhap'){ document.getElementById('quanTamNhat').value = ''; document.getElementById('quanTamNhat').focus(); } else if(this.value){ document.getElementById('quanTamNhat').value = this.value; }" class="w-full border rounded px-2 py-1.5 mb-1.5 bg-gray-50 text-sm font-medium">
           <option value="">-- Chọn mẫu câu quan tâm nước Nhật --</option>
-          <option value="日本の先端科学技術、安全で清潔な生活環境。">Công nghệ hiện đại & môi trường sống</option>
-          <option value="伝統的な日本文化、桜の美しい景色、富士山。">Văn hóa truyền thống, hoa anh đào, núi Phú Sĩ</option>
-          <option value="日本人の時間厳守、高い労働倫理と仕事への強い責任感。">Tác phong làm việc đúng giờ & tính kỷ luật</option>
-          <option value="発展した経済、和食や日本の食文化。">Nền kinh tế phát triển & văn hóa ẩm thực</option>
+          <option value="日本の先端科学技術、安全で清潔な生活環境。">1. Công nghệ hiện đại & môi trường sống an toàn, sạch đẹp</option>
+          <option value="伝統的な日本文化、桜の美しい景色、富士山。">2. Văn hóa truyền thống, hoa anh đào, núi Phú Sĩ</option>
+          <option value="日本人の時間厳守、高い労働倫理と仕事への強い責任感。">3. Tác phong làm việc đúng giờ & tính kỷ luật cao</option>
+          <option value="発展した経済、和食や日本の食文化。">4. Nền kinh tế phát triển & văn hóa ẩm thực Nhật Bản</option>
+          <option value="日本の進んだものづくり技術と徹底した品質管理。">5. Kỹ thuật sản xuất chế tạo tiên tiến & quản lý chất lượng cao</option>
+          <option value="日本人の親切で温かい人柄、おもてなしの心。">6. Sự thân thiện, tốt bụng và văn hóa hiếu khách của người Nhật</option>
+          <option value="新幹線などの発達した交通網、安全で治安が良い社会。">7. Giao thông hiện đại (tàu Shinkansen) & xã hội an ninh an toàn</option>
+          <option value="礼儀正しい挨拶やマナー、相手を尊重する職場環境。">8. Văn hóa chào hỏi lịch thiệp & sự tôn trọng trong công việc</option>
+          <option value="四季折々の豊かな自然、冬の雪景色や秋の美しい紅葉。">9. Thiên nhiên bốn mùa tươi đẹp, tuyết trắng mùa đông & lá đỏ mùa thu</option>
+          <option value="東京タワーや歴史ある寺社、活気ある伝統的な祭り。">10. Tháp Tokyo, các ngôi đền chùa cổ kính & lễ hội truyền thống</option>
+          <option value="tu_nhap">11. -- Tự nhập khác --</option>
         </select>
         <textarea id="quanTamNhat" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
       </div>
@@ -445,6 +466,20 @@
       oSoThich.readOnly = true;
       oSoThich.classList.remove('bg-white');
       oSoThich.classList.add('bg-gray-100', 'text-gray-600');
+    }
+  }
+
+  // Logic chọn mẫu tính cách (Khối L)
+  function xuLyChonTinhCach(value) {
+    var oTinhCach = document.getElementById('tinhCach');
+    if (!value) {
+      return;
+    }
+    if (value === 'tu_nhap') {
+      oTinhCach.value = '';
+      oTinhCach.focus();
+    } else {
+      oTinhCach.value = value;
     }
   }
 </script>

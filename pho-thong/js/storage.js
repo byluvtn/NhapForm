@@ -1,638 +1,776 @@
-// ===================== pho-thong/js/storage.js =====================
-const STORAGE_KEY = "danhSachPhoThong";
-let dangSuaIndex = -1;
+/**
+ * storage.js - Quản lý LocalStorage, Dòng động bảng biểu, Xử lý form, Tính kinh nghiệm và Bắt sự kiện
+ */
 
-// Xử lý đổi Sở thích (Khối K): chọn "khac" thì mở ô nhập tự do, ngược lại khóa và điền giá trị đã chọn
-window.xuLyDoiSoThich = function (val) {
-    const input = document.getElementById("soThich");
-    if (!input) return;
-    if (val === "khac") {
-        input.value = "";
-        input.readOnly = false;
-        input.className = "border rounded px-2 py-1.5 bg-white text-gray-800 ml-2";
-        input.focus();
-    } else {
-        input.value = val;
-        input.readOnly = true;
-        input.className = "border rounded px-2 py-1.5 bg-gray-100 text-gray-600 ml-2";
-    }
+const STORAGE_KEY = 'nhapform_danh_sach_ung_vien';
+
+// Danh sách gợi ý chuẩn tiếng Nhật
+const GOI_Y_TEMPLATES = {
+  tinhCach: [
+    '明るく、責任感が強い (Vui vẻ, tinh thần trách nhiệm cao)',
+    '真面目で素直、向上心がある (Chăm chỉ, thật thà, có chí tiến thủ)',
+    '健康で忍耐力があり、協調性に富む (Khỏe mạnh, kiên trì, có tính hòa đồng)',
+    '手先が器用で、几帳面な性格 (Khéo tay, tỉ mỉ, cẩn thận)',
+    '何事にも前向きで、粘り強い (Luôn tích cực trong mọi việc, bền bỉ)',
+    '規律を守り、チームワークを大切にする (Tuân thủ kỷ luật, coi trọng làm việc nhóm)'
+  ],
+  lyDoDiNhat: [
+    '日本の進んだ技術と専門知識を学びたい (Muốn học hỏi kỹ thuật tiên tiến của Nhật)',
+    '日本の規律正しく安全な環境で働き、スキルを身につけたい (Làm việc trong môi trường an toàn, kỷ luật)',
+    '日本語能力を高め、将来の日系企業就職に役立てたい (Nâng cao tiếng Nhật để sau này làm cho cty Nhật)',
+    '日本で一生懸命働き、家族のために貯金したい (Chăm chỉ làm việc để tiết kiệm phụ giúp gia đình)',
+    '日本のプロフェッショナルな仕事の進め方を身につけたい (Học tác phong làm việc chuyên nghiệp)'
+  ],
+  mucTieuVeNuoc: [
+    '学んだ技術と経験を活かし、ベトナムの日系企業で働く (Làm việc tại công ty Nhật ở VN)',
+    '貯めた資金をもとに、自分の店を開業する (Mở cửa hàng kinh doanh riêng)',
+    '日本語通訳や現場管理者として活躍する (Làm phiên dịch hoặc quản lý sản xuất)'
+  ],
+  soThich: ['サッカー', 'バドミントン', '音楽鑑賞', '料理', '旅行', '読書', 'ランニング']
 };
 
-function getVal(id) { const el = document.getElementById(id); if (!el) return ""; return el.value !== undefined ? el.value : ""; }
-function setVal(id, value) { const el = document.getElementById(id); if (!el) return; el.value = value !== undefined && value !== null ? value : ""; }
-function getChecked(id) { const el = document.getElementById(id); if (!el) return false; return !!el.checked; }
-function setChecked(id, value) { const el = document.getElementById(id); if (!el) return; el.checked = !!value; }
+// 1. TỰ ĐỘNG QUÉT VÀ KHÔI PHỤC DỮ LIỆU CŨ TRONG BỘ NHỚ TRÌNH DUYỆT
+function layDanhSachHoSo() {
+  let bestList = [];
 
-// Lấy giá trị Tôn giáo: nếu chọn "Khác" thì lấy từ ô nhập tự do #tonGiaoKhac
-function getTonGiao() {
-    const tonGiaoEl = document.getElementById("tonGiao");
-    if (tonGiaoEl && tonGiaoEl.value === "Khác") {
-        return getVal("tonGiaoKhac");
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > bestList.length) bestList = parsed;
     }
-    return getVal("tonGiao");
-}
+  } catch (e) {}
 
-// Đổ giá trị Tôn giáo lên form: nếu giá trị không khớp option có sẵn thì chọn "Khác" và điền vào ô tự do
-function setTonGiao(value) {
-    const tonGiaoEl = document.getElementById("tonGiao");
-    const tonGiaoKhacEl = document.getElementById("tonGiaoKhac");
-    if (!tonGiaoEl) return;
-    const options = Array.from(tonGiaoEl.options).map((opt) => opt.value);
-    if (value && options.includes(value) && value !== "Khác") {
-        tonGiaoEl.value = value;
-        if (tonGiaoKhacEl) { tonGiaoKhacEl.value = ""; tonGiaoKhacEl.style.display = "none"; }
-    } else if (value) {
-        tonGiaoEl.value = "Khác";
-        if (tonGiaoKhacEl) { tonGiaoKhacEl.value = value; tonGiaoKhacEl.style.display = "inline-block"; }
-    } else {
-        tonGiaoEl.selectedIndex = 0;
-        if (tonGiaoKhacEl) { tonGiaoKhacEl.value = ""; tonGiaoKhacEl.style.display = "none"; }
-    }
-}
+  const candidateKeys = [
+    'danhSachUngVien', 'ung_vien_list', 'ungVienList', 'candidates',
+    'danhSach', 'danh_sach_ho_so', 'danhSachHoSo', 'hoSoList', 'ungVien'
+  ];
+  for (const k of candidateKeys) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > bestList.length) bestList = parsed;
+      }
+    } catch (e) {}
+  }
 
-// Tính số năm/tháng kinh nghiệm dựa trên MM/YYYY, quy đổi sang chuẩn tiếng Nhật 100%
-// X年Xヶ月 / X年 / Xヶ月
-function tinhKinhNghiem(tuStr, denStr) {
-    if (!tuStr) return "";
-    const parseMMYYYY = (str) => {
-        const parts = String(str).trim().split("/");
-        if (parts.length !== 2) return null;
-        const month = parseInt(parts[0], 10);
-        const year = parseInt(parts[1], 10);
-        if (isNaN(month) || isNaN(year)) return null;
-        return { month, year };
-    };
-    const tu = parseMMYYYY(tuStr);
-    if (!tu) return "";
-    let den;
-    if (denStr && String(denStr).trim() !== "") {
-        den = parseMMYYYY(denStr);
-        if (!den) return "";
-    } else {
-        const now = new Date();
-        den = { month: now.getMonth() + 1, year: now.getFullYear() };
-    }
-    let totalMonths = (den.year - tu.year) * 12 + (den.month - tu.month);
-    if (totalMonths < 0) return "";
-    const years = Math.floor(totalMonths / 12);
-    const months = totalMonths % 12;
-    if (years <= 0 && months <= 0) return "";
-    if (years > 0 && months > 0) return `${years}年${months}ヶ月`;
-    if (years > 0) return `${years}年`;
-    return `${months}ヶ月`;
-}
-
-function createHocVanRow(data) {
-    data = data || {};
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-    <td><input type="text" class="hocvan-tu w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.tu || ""}" placeholder="MM/YYYY"></td>
-    <td><input type="text" class="hocvan-den w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.den || ""}" placeholder="MM/YYYY"></td>
-    <td><input type="text" class="hocvan-tinh w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.tinhTP || ""}" placeholder="Tỉnh/TP"></td>
-    <td><input type="text" class="hocvan-truong w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.truong || ""}" placeholder="Tên trường"></td>
-    <td><input type="text" class="hocvan-nganh w-full border border-gray-300 rounded px-2 py-1.5 text-sm" list="listNganhHoc" value="${data.nganh || ""}" placeholder="普通科 hoặc tự gõ"></td>
-    <td><button type="button" class="btn-xoa-dong text-red-500 hover:text-red-700 font-bold px-2 py-1 text-sm">Xóa</button></td>
-  `;
-    const truongInput = tr.querySelector(".hocvan-truong");
-    const nganhInput = tr.querySelector(".hocvan-nganh");
-    const capNhatNganhTheoTruong = () => {
-        if (String(truongInput.value || "").includes("高校") && !nganhInput.value) {
-            nganhInput.value = "普通科";
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    try {
+      const val = localStorage.getItem(k);
+      if (val && val.startsWith('[')) {
+        const arr = JSON.parse(val);
+        if (Array.isArray(arr) && arr.length > bestList.length && (arr[0].hoTen || arr[0].furigana || arr[0].id)) {
+          bestList = arr;
         }
-    };
-    truongInput.addEventListener("input", capNhatNganhTheoTruong);
-    truongInput.addEventListener("change", capNhatNganhTheoTruong);
-    tr.querySelector(".btn-xoa-dong").addEventListener("click", () => tr.remove());
-    return tr;
+      }
+    } catch (e) {}
+  }
+
+  if (bestList.length > 0) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bestList)); } catch (e) {}
+  }
+
+  return bestList;
 }
 
-function createCongViecRow(data) {
-    data = data || {};
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-    <td><input type="text" class="congviec-tu w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.tu || ""}" placeholder="MM/YYYY"></td>
-    <td><input type="text" class="congviec-den w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.den || ""}" placeholder="MM/YYYY"></td>
-    <td><input type="text" class="congviec-tinh w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.tinhTP || ""}" placeholder="Tỉnh làm việc"></td>
-    <td><input type="text" class="congviec-cty w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.congTy || ""}" placeholder="Tên công ty"></td>
-    <td><input type="text" class="congviec-congviec w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.congViec || ""}" placeholder="Công việc"></td>
-    <td><input type="text" class="congviec-luong w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.luong || ""}" placeholder="3万"></td>
-    <td><input type="text" class="congviec-kinhnghiem w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm bg-gray-50 font-bold text-blue-700" value="${data.kinhNghiem || ""}" placeholder="1年1ヶ月" readonly></td>
-    <td><button type="button" class="btn-xoa-dong text-red-500 hover:text-red-700 font-bold px-2 py-1 text-sm">Xóa</button></td>
+function luuDanhSachHoSo(list) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error('Lỗi ghi LocalStorage:', e);
+    alert('Bộ nhớ trình duyệt bị đầy, không thể lưu thêm!');
+  }
+}
+
+// 2. TÍNH KINH NGHIỆM LÀM VIỆC CHUẨN X年Xヶ月
+function tinhThoiGianLam(tuStr, denStr) {
+  if (!tuStr || !denStr) return '';
+  const parseMY = (s) => {
+    if (!s) return null;
+    const parts = s.trim().split(/[\/\-]/);
+    if (parts.length === 2) {
+      let m = parseInt(parts[0], 10);
+      let y = parseInt(parts[1], 10);
+      if (parts[0].length === 4) { y = parseInt(parts[0], 10); m = parseInt(parts[1], 10); }
+      if (m >= 1 && m <= 12 && y >= 1900 && y <= 2100) return { y, m };
+    }
+    return null;
+  };
+
+  const d1 = parseMY(tuStr);
+  let d2 = null;
+  if (denStr.trim() === '現在') {
+    const now = new Date();
+    d2 = { y: now.getFullYear(), m: now.getMonth() + 1 };
+  } else {
+    d2 = parseMY(denStr);
+  }
+
+  if (!d1 || !d2) return '';
+
+  const totalMonths = (d2.y - d1.y) * 12 + (d2.m - d1.m);
+  if (totalMonths < 0) return '';
+  if (totalMonths === 0) return '1ヶ月';
+
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+
+  if (years > 0 && months > 0) return `${years}年${months}ヶ月`;
+  if (years > 0) return `${years}年`;
+  return `${months}ヶ月`;
+}
+
+// 3. TÌM TBODY THÔNG MINH
+function timTbody(loai) {
+  let tb = null;
+  if (loai === 'hocvan') {
+    tb = document.querySelector('#table-hoc-van tbody') || document.querySelector('#tblHocVan tbody') || document.querySelector('#table-hoc-van');
+  } else if (loai === 'congviec') {
+    tb = document.querySelector('#table-cong-viec tbody') || document.querySelector('#tblCongViec tbody') || document.querySelector('#table-cong-viec');
+  } else if (loai === 'bangcap') {
+    tb = document.querySelector('#table-bang-cap tbody') || document.querySelector('#tblBangCap tbody') || document.querySelector('#table-bang-cap');
+  } else if (loai === 'giadinh') {
+    tb = document.querySelector('#table-gia-dinh tbody') || document.querySelector('#tblGiaDinh tbody') || document.querySelector('#table-gia-dinh');
+  }
+
+  if (tb && tb.tagName === 'TABLE') {
+    let tbody = tb.querySelector('tbody');
+    if (!tbody) { tbody = document.createElement('tbody'); tb.appendChild(tbody); }
+    return tbody;
+  }
+  if (tb) return tb;
+
+  const allTables = document.querySelectorAll('table');
+  for (const t of allTables) {
+    const txt = t.textContent;
+    if (loai === 'hocvan' && txt.includes('Tên trường') && (txt.includes('Khoa') || txt.includes('Ngành'))) {
+      return t.querySelector('tbody') || t;
+    }
+    if (loai === 'congviec' && (txt.includes('Tên công ty') || txt.includes('Công ty')) && txt.includes('Công việc')) {
+      return t.querySelector('tbody') || t;
+    }
+    if (loai === 'bangcap' && txt.includes('bằng cấp') && (txt.includes('Ngày cấp') || txt.includes('Cấp'))) {
+      return t.querySelector('tbody') || t;
+    }
+    if (loai === 'giadinh' && (txt.includes('Mối quan hệ') || txt.includes('間柄')) && (txt.includes('Sống chung') || txt.includes('同居'))) {
+      return t.querySelector('tbody') || t;
+    }
+  }
+  return null;
+}
+
+// 4. HỌC VẤN (Tỉnh/TP và Tên trường để người dùng tự gõ dạng text)
+function themDongHocVan(data = {}) {
+  const tbody = timTbody('hocvan');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.className = 'border-b';
+  tr.innerHTML = `
+    <td class="p-2"><input type="text" class="hv-tu w-full border rounded px-2 py-1" placeholder="MM/YYYY" value="${data.tu || ''}"></td>
+    <td class="p-2"><input type="text" class="hv-den w-full border rounded px-2 py-1" placeholder="MM/YYYY" value="${data.den || ''}"></td>
+    <td class="p-2"><input type="text" class="hv-tinh w-full border rounded px-2 py-1" placeholder="Tỉnh/TP (VD: THAI NGUYEN)" value="${data.tinh || ''}"></td>
+    <td class="p-2"><input type="text" class="hv-truong w-full border rounded px-2 py-1" placeholder="Tên trường (VD: THPT Lương Ngọc Quyến)" value="${data.truong || ''}"></td>
+    <td class="p-2"><input type="text" class="hv-khoa w-full border rounded px-2 py-1" placeholder="Khoa/Ngành học" value="${data.khoa || ''}"></td>
+    <td class="p-2 text-center"><button type="button" class="btn-xoa-dong text-red-500 font-bold px-2 py-1">Xóa</button></td>
   `;
-    const tuInput = tr.querySelector(".congviec-tu");
-    const denInput = tr.querySelector(".congviec-den");
-    const kinhNghiemInput = tr.querySelector(".congviec-kinhnghiem");
-    const capNhatKinhNghiem = () => {
-        kinhNghiemInput.value = tinhKinhNghiem(tuInput.value, denInput.value);
-    };
-    tuInput.addEventListener("input", capNhatKinhNghiem);
-    tuInput.addEventListener("change", capNhatKinhNghiem);
-    denInput.addEventListener("input", capNhatKinhNghiem);
-    denInput.addEventListener("change", capNhatKinhNghiem);
-    if (!data.kinhNghiem) capNhatKinhNghiem();
-    tr.querySelector(".btn-xoa-dong").addEventListener("click", () => tr.remove());
-    return tr;
+  tbody.appendChild(tr);
 }
 
-function createBangCapRow(data) {
-    data = data || {};
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-    <td><input type="text" class="bc-thoigian w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.thoiGian || ""}" placeholder="MM/YYYY"></td>
-    <td><input type="text" class="bc-ten w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.ten || ""}" placeholder="Tên bằng cấp"></td>
-    <td><button type="button" class="btn-xoa-dong text-red-500 hover:text-red-700 font-bold px-2 py-1 text-sm">Xóa</button></td>
+function khoiTaoBangHocVan() {
+  const tbody = timTbody('hocvan');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  // Dòng 1: Cấp 3 (tự gõ tỉnh và trường)
+  themDongHocVan({ tu: '09/2020', den: '06/2023', tinh: 'THAI NGUYEN', truong: 'THPT', khoa: '普通科' });
+  // Dòng 2: Trung tâm tiếng Nhật GICC
+  themDongHocVan({ tu: '10/2026', den: '現在', tinh: 'HA NOI', truong: 'GICC日本語センター', khoa: '日本語学習' });
+}
+
+// 5. CÔNG VIỆC
+function themDongCongViec(data = {}) {
+  const tbody = timTbody('congviec');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.className = 'border-b';
+  tr.innerHTML = `
+    <td class="p-2"><input type="text" class="cv-tu w-full border rounded px-2 py-1" placeholder="MM/YYYY" value="${data.tu || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-den w-full border rounded px-2 py-1" placeholder="MM/YYYY" value="${data.den || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-tinh w-full border rounded px-2 py-1" placeholder="Tỉnh làm việc" value="${data.tinh || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-cty w-full border rounded px-2 py-1" placeholder="Tên công ty" value="${data.cty || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-ndcv w-full border rounded px-2 py-1" placeholder="Công việc" value="${data.ndcv || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-luong w-full border rounded px-2 py-1" placeholder="Lương" value="${data.luong || ''}"></td>
+    <td class="p-2"><input type="text" class="cv-thoigian w-full border rounded px-2 py-1" placeholder="VD: 1年2ヶ月" value="${data.thoiGianLam || ''}"></td>
+    <td class="p-2 text-center"><button type="button" class="btn-xoa-dong text-red-500 font-bold px-2 py-1">Xóa</button></td>
   `;
-    tr.querySelector(".btn-xoa-dong").addEventListener("click", () => tr.remove());
-    return tr;
+
+  const inpTu = tr.querySelector('.cv-tu');
+  const inpDen = tr.querySelector('.cv-den');
+  const inpTg = tr.querySelector('.cv-thoigian');
+  const autoCalc = () => {
+    const res = tinhThoiGianLam(inpTu.value, inpDen.value);
+    if (res) inpTg.value = res;
+  };
+  inpTu.addEventListener('input', autoCalc);
+  inpDen.addEventListener('input', autoCalc);
+
+  tbody.appendChild(tr);
 }
 
-function createGiaDinhRow(data) {
-    data = data || {};
-    const songChungChecked = data.songChung === "Có" || data.songChung === true;
-    const daMatChecked = data.daMat === true || data.daMat === "true";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-    <td>
-      <select class="giadinh-quanhe gd-quanhe w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-        <option value="父" ${data.quanHe === "父" ? "selected" : ""}>父</option>
-        <option value="母" ${data.quanHe === "母" ? "selected" : ""}>母</option>
-        <option value="兄" ${data.quanHe === "兄" ? "selected" : ""}>兄</option>
-        <option value="姉" ${data.quanHe === "姉" ? "selected" : ""}>姉</option>
-        <option value="弟" ${data.quanHe === "弟" ? "selected" : ""}>弟</option>
-        <option value="妹" ${data.quanHe === "妹" ? "selected" : ""}>妹</option>
-        <option value="妻" ${data.quanHe === "妻" ? "selected" : ""}>妻</option>
-        <option value="夫" ${data.quanHe === "夫" ? "selected" : ""}>夫</option>
-        <option value="子" ${data.quanHe === "子" ? "selected" : ""}>子</option>
+function khoiTaoBangCongViec() {
+  const tbody = timTbody('congviec');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  themDongCongViec();
+}
+
+// 6. BẰNG CẤP (Đổi vị trí: Cột 1 là Ngày cấp, Cột 2 là Tên bằng cấp)
+function themDongBangCap(data = {}) {
+  const tbody = timTbody('bangcap');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.className = 'border-b';
+  tr.innerHTML = `
+    <td class="p-2"><input type="text" class="bc-ngay w-full border rounded px-2 py-1" placeholder="MM/YYYY" value="${data.ngay || ''}"></td>
+    <td class="p-2"><input type="text" class="bc-ten w-full border rounded px-2 py-1" placeholder="Tên bằng (VD: 高校卒業証書, 大学卒業証書)" value="${data.ten || ''}"></td>
+    <td class="p-2 text-center"><button type="button" class="btn-xoa-dong text-red-500 font-bold px-2 py-1">Xóa</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function khoiTaoBangBangCap() {
+  const tbody = timTbody('bangcap');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  themDongBangCap({ ngay: '06/2023', ten: '高校卒業証書' });
+}
+
+// 7. GIA ĐÌNH (Sống chung chỉ chọn 有 / 無; tích Đã mất thì khóa và hiện dấu -)
+function themDongGiaDinh(data = {}) {
+  const tbody = timTbody('giadinh');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.className = 'border-b';
+  tr.innerHTML = `
+    <td class="p-2">
+      <select class="gd-quan-he w-full border rounded px-2 py-1">
+        <option value="父" ${data.quanHe === '父' ? 'selected' : ''}>Bố (父)</option>
+        <option value="母" ${data.quanHe === '母' ? 'selected' : ''}>Mẹ (母)</option>
+        <option value="兄" ${data.quanHe === '兄' ? 'selected' : ''}>Anh trai (兄)</option>
+        <option value="弟" ${data.quanHe === '弟' ? 'selected' : ''}>Em trai (弟)</option>
+        <option value="姉" ${data.quanHe === '姉' ? 'selected' : ''}>Chị gái (姉)</option>
+        <option value="妹" ${data.quanHe === '妹' ? 'selected' : ''}>Em gái (妹)</option>
+        <option value="妻" ${data.quanHe === '妻' ? 'selected' : ''}>Vợ (妻)</option>
+        <option value="夫" ${data.quanHe === '夫' ? 'selected' : ''}>Chồng (夫)</option>
+        <option value="子" ${data.quanHe === '子' ? 'selected' : ''}>Con (子)</option>
       </select>
     </td>
-    <td><input type="number" class="gd-tuoi w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.tuoi || ""}" placeholder="Tuổi"></td>
-    <td>
-      <select class="gd-songchung w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-        <option value="Có" ${songChungChecked ? "selected" : ""}>Có</option>
-        <option value="Không" ${!songChungChecked ? "selected" : ""}>Không</option>
+    <td class="p-2"><input type="text" class="gd-nam-sinh w-full border rounded px-2 py-1" placeholder="Tuổi/Năm sinh" value="${data.namSinh || ''}"></td>
+    <td class="p-2">
+      <select class="gd-song-chung w-full border rounded px-2 py-1">
+        <option value="有" ${data.songChung === '有' ? 'selected' : ''}>有</option>
+        <option value="無" ${data.songChung === '無' ? 'selected' : ''}>無</option>
       </select>
     </td>
-    <td><input type="text" class="gd-nghe w-full border border-gray-300 rounded px-2 py-1.5 text-sm" value="${data.ngheNghiep || ""}" placeholder="Nghề nghiệp"></td>
-    <td><input type="text" class="gd-thunhap w-full border border-gray-300 rounded px-2 py-1.5 text-center text-sm" value="${data.thuNhap || ""}" placeholder="Thu nhập"></td>
-    <td class="text-center">
-      <label class="inline-flex items-center gap-1 cursor-pointer">
-        <input type="checkbox" class="gd-damat" ${daMatChecked ? "checked" : ""}>
-        <span>Đã mất (死去)</span>
-      </label>
-    </td>
-    <td><button type="button" class="btn-xoa-dong text-red-500 hover:text-red-700 font-bold px-2 py-1 text-sm">Xóa</button></td>
+    <td class="p-2"><input type="text" class="gd-nghe-nghiep w-full border rounded px-2 py-1" placeholder="Nghề nghiệp" value="${data.ngheNghiep || ''}"></td>
+    <td class="p-2"><input type="text" class="gd-thu-nhap w-full border rounded px-2 py-1" placeholder="Thu nhập (VD: 3万)" value="${data.thuNhap || ''}"></td>
+    <td class="p-2 text-center"><input type="checkbox" class="gd-da-mat h-5 w-5 cursor-pointer" ${data.daMat ? 'checked' : ''}></td>
+    <td class="p-2 text-center"><button type="button" class="btn-xoa-dong text-red-500 font-bold px-2 py-1">Xóa</button></td>
   `;
 
-    const tuoiInput = tr.querySelector(".gd-tuoi");
-    const songChungSelect = tr.querySelector(".gd-songchung");
-    const ngheInput = tr.querySelector(".gd-nghe");
-    const thuNhapInput = tr.querySelector(".gd-thunhap");
-    const daMatCheckbox = tr.querySelector(".gd-damat");
+  // Xử lý logic Đã mất (死去)
+  const chkDaMat = tr.querySelector('.gd-da-mat');
+  const inpNamSinh = tr.querySelector('.gd-nam-sinh');
+  const selSongChung = tr.querySelector('.gd-song-chung');
+  const inpNghe = tr.querySelector('.gd-nghe-nghiep');
+  const inpThuNhap = tr.querySelector('.gd-thu-nhap');
 
-    const capNhatLockTrangThai = () => {
-        const isDead = daMatCheckbox.checked;
-        [tuoiInput, songChungSelect, ngheInput, thuNhapInput].forEach((el) => {
-            el.disabled = isDead;
-            el.classList.toggle("opacity-50", isDead);
-            el.classList.toggle("bg-gray-100", isDead);
-        });
-    };
-    daMatCheckbox.addEventListener("change", capNhatLockTrangThai);
-    capNhatLockTrangThai();
+  const capNhatTrangThaiDaMat = () => {
+    if (chkDaMat.checked) {
+      inpNamSinh.value = '死去';
+      inpNamSinh.readOnly = true;
+      inpNamSinh.classList.add('bg-gray-100');
 
-    tr.querySelector(".btn-xoa-dong").addEventListener("click", () => tr.remove());
-    return tr;
+      selSongChung.value = '無';
+      selSongChung.disabled = true;
+      selSongChung.classList.add('bg-gray-100');
+
+      inpNghe.value = 'ー';
+      inpNghe.readOnly = true;
+      inpNghe.classList.add('bg-gray-100');
+
+      inpThuNhap.value = 'ー';
+      inpThuNhap.readOnly = true;
+      inpThuNhap.classList.add('bg-gray-100');
+    } else {
+      if (inpNamSinh.value === '死去') inpNamSinh.value = '';
+      inpNamSinh.readOnly = false;
+      inpNamSinh.classList.remove('bg-gray-100');
+
+      selSongChung.disabled = false;
+      selSongChung.classList.remove('bg-gray-100');
+
+      if (inpNghe.value === 'ー') inpNghe.value = '';
+      inpNghe.readOnly = false;
+      inpNghe.classList.remove('bg-gray-100');
+
+      if (inpThuNhap.value === 'ー') inpThuNhap.value = '';
+      inpThuNhap.readOnly = false;
+      inpThuNhap.classList.remove('bg-gray-100');
+    }
+  };
+
+  chkDaMat.addEventListener('change', capNhatTrangThaiDaMat);
+  if (data.daMat) capNhatTrangThaiDaMat();
+
+  tbody.appendChild(tr);
 }
 
-function themDongHocVanMacDinh() {
-    const tbody = document.getElementById("hocVanBody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    tbody.appendChild(createHocVanRow({}));
+function khoiTaoBangGiaDinh() {
+  const tbody = timTbody('giadinh');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  themDongGiaDinh({ quanHe: '父', songChung: '有', ngheNghiep: '農業', thuNhap: '3万' });
+  themDongGiaDinh({ quanHe: '母', songChung: '有', ngheNghiep: '農業', thuNhap: '3万' });
 }
 
-function themDongCongViecMacDinh() {
-    const tbody = document.getElementById("quaTrinhLamViecBody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
+// 8. XỬ LÝ KHÓA/MỞ Ô XUẤT NGOẠI
+function capNhatTrangThaiXuatNgoai() {
+  const selXn = document.getElementById('diNuocNgoai') || document.querySelector('[name="diNuocNgoai"]');
+  const inpNuoc = document.getElementById('diNuocNgoaiNuoc') || document.querySelector('[name="diNuocNgoaiNuoc"]');
+  const inpMucDich = document.getElementById('diNuocNgoaiMucDich') || document.querySelector('[name="diNuocNgoaiMucDich"]');
+
+  if (!selXn || !inpNuoc || !inpMucDich) return;
+  const isCo = selXn.value === 'co' || selXn.value === 'Có';
+
+  if (isCo) {
+    inpNuoc.disabled = false;
+    inpNuoc.classList.remove('bg-gray-100', 'cursor-not-allowed');
+    inpMucDich.disabled = false;
+    inpMucDich.classList.remove('bg-gray-100', 'cursor-not-allowed');
+  } else {
+    inpNuoc.disabled = true;
+    inpNuoc.value = '';
+    inpNuoc.classList.add('bg-gray-100', 'cursor-not-allowed');
+    inpMucDich.disabled = true;
+    inpMucDich.value = '';
+    inpMucDich.classList.add('bg-gray-100', 'cursor-not-allowed');
+  }
 }
 
-function themDongBangCapMacDinh() {
-    const tbody = document.getElementById("bangCapBody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    tbody.appendChild(createBangCapRow({ thoiGian: "", ten: "高校卒業証書" }));
-}
+// 9. THU THẬP & ĐỔ DỮ LIỆU FORM
+function thuThapFormData() {
+  const getVal = (id) => {
+    const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    return el ? el.value.trim() : '';
+  };
+  const getSelect = (id) => {
+    const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    return el ? el.value : '';
+  };
 
-function themDongGiaDinhMacDinh() {
-    const tbody = document.getElementById("giaDinhBody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    tbody.appendChild(createGiaDinhRow({ quanHe: "父", tuoi: "", songChung: "Có", ngheNghiep: "", thuNhap: "" }));
-    tbody.appendChild(createGiaDinhRow({ quanHe: "母", tuoi: "", songChung: "Có", ngheNghiep: "", thuNhap: "" }));
-}
-
-function collectFormData() {
-    const data = {};
-    data.hoTen = getVal("hoTen");
-    data.tenKatakana = getVal("tenKatakana");
-    data.ngaySinh = getVal("ngaySinh");
-    data.tuoi = getVal("tuoi");
-    data.gioiTinh = getVal("gioiTinh");
-    data.honNhan = getVal("honNhan");
-    data.diaChiTinh = getVal("diaChiTinh");
-    data.diaChiHuyen = getVal("diaChiHuyen");
-    data.diaChiXa = getVal("diaChiXa");
-    data.tonGiao = getTonGiao();
-    data.chieuCao = getVal("chieuCao");
-    data.canNang = getVal("canNang");
-    data.nhomMau = getVal("nhomMau");
-    data.tayThuan = getVal("tayThuan");
-    data.thiLucPhai = getVal("thiLucPhai");
-    data.thiLucTrai = getVal("thiLucTrai");
-    data.muMau = getVal("muMau");
-    data.hutThuoc = getVal("hutThuoc");
-    data.xamMinh = getVal("xamMinh");
-    data.ngayChupAnh = getVal("ngayChupAnh");
-    data.iq1 = getVal("iq1");
-    data.iq2 = getVal("iq2");
-    data.iq3 = getVal("iq3");
-    data.iq4 = getVal("iq4");
-
-    data.bacHocCaoNhat = getVal("bacHocCaoNhat");
-    data.tiengNhatTu = getVal("tiengNhatTu");
-    data.tiengNhatDen = getVal("tiengNhatDen");
-    data.tiengNhatDiaDiem = getVal("tiengNhatDiaDiem");
-    data.tiengNhatTruong = getVal("tiengNhatTruong");
-    data.tiengNhatMon = getVal("tiengNhatMon");
-
-    data.hocVan = [];
-    document.querySelectorAll("#hocVanBody tr").forEach((tr) => {
-        data.hocVan.push({
-            tu: tr.querySelector(".hocvan-tu") ? tr.querySelector(".hocvan-tu").value : "",
-            den: tr.querySelector(".hocvan-den") ? tr.querySelector(".hocvan-den").value : "",
-            tinhTP: tr.querySelector(".hocvan-tinh") ? tr.querySelector(".hocvan-tinh").value : "",
-            truong: tr.querySelector(".hocvan-truong") ? tr.querySelector(".hocvan-truong").value : "",
-            nganh: tr.querySelector(".hocvan-nganh") ? tr.querySelector(".hocvan-nganh").value : "",
-        });
+  const hocVan = [];
+  const tbHv = timTbody('hocvan');
+  if (tbHv) {
+    tbHv.querySelectorAll('tr').forEach((row) => {
+      const tu = row.querySelector('.hv-tu')?.value.trim() || '';
+      const den = row.querySelector('.hv-den')?.value.trim() || '';
+      const tinh = row.querySelector('.hv-tinh')?.value.trim() || '';
+      const truong = row.querySelector('.hv-truong')?.value.trim() || '';
+      const khoa = row.querySelector('.hv-khoa')?.value.trim() || '';
+      if (truong || tu || den) hocVan.push({ tu, den, tinh, truong, khoa });
     });
+  }
 
-    data.quaTrinhLamViec = [];
-    document.querySelectorAll("#quaTrinhLamViecBody tr").forEach((tr) => {
-        data.quaTrinhLamViec.push({
-            tu: tr.querySelector(".congviec-tu") ? tr.querySelector(".congviec-tu").value : "",
-            den: tr.querySelector(".congviec-den") ? tr.querySelector(".congviec-den").value : "",
-            tinhTP: tr.querySelector(".congviec-tinh") ? tr.querySelector(".congviec-tinh").value : "",
-            congTy: tr.querySelector(".congviec-cty") ? tr.querySelector(".congviec-cty").value : "",
-            congViec: tr.querySelector(".congviec-congviec") ? tr.querySelector(".congviec-congviec").value : "",
-            luong: tr.querySelector(".congviec-luong") ? tr.querySelector(".congviec-luong").value : "",
-            kinhNghiem: tr.querySelector(".congviec-kinhnghiem") ? tr.querySelector(".congviec-kinhnghiem").value : "",
-        });
+  const congViec = [];
+  const tbCv = timTbody('congviec');
+  if (tbCv) {
+    tbCv.querySelectorAll('tr').forEach((row) => {
+      const tu = row.querySelector('.cv-tu')?.value.trim() || '';
+      const den = row.querySelector('.cv-den')?.value.trim() || '';
+      const tinh = row.querySelector('.cv-tinh')?.value.trim() || '';
+      const cty = row.querySelector('.cv-cty')?.value.trim() || '';
+      const ndcv = row.querySelector('.cv-ndcv')?.value.trim() || '';
+      const luong = row.querySelector('.cv-luong')?.value.trim() || '';
+      const thoiGianLam = row.querySelector('.cv-thoigian')?.value.trim() || '';
+      if (cty || tu || den || ndcv) congViec.push({ tu, den, tinh, cty, ndcv, luong, thoiGianLam });
     });
+  }
 
-    data.bangCap = [];
-    document.querySelectorAll("#bangCapBody tr").forEach((tr) => {
-        data.bangCap.push({
-            thoiGian: tr.querySelector(".bc-thoigian") ? tr.querySelector(".bc-thoigian").value : "",
-            ten: tr.querySelector(".bc-ten") ? tr.querySelector(".bc-ten").value : "",
-        });
+  const bangCap = [];
+  const tbBc = timTbody('bangcap');
+  if (tbBc) {
+    tbBc.querySelectorAll('tr').forEach((row) => {
+      const ngay = row.querySelector('.bc-ngay')?.value.trim() || '';
+      const ten = row.querySelector('.bc-ten')?.value.trim() || '';
+      if (ten || ngay) bangCap.push({ ngay, ten });
     });
+  }
 
-    data.giaDinh = [];
-    document.querySelectorAll("#giaDinhBody tr").forEach((tr) => {
-        const songChungEl = tr.querySelector(".gd-songchung");
-        const daMatEl = tr.querySelector(".gd-damat");
-        data.giaDinh.push({
-            quanHe: tr.querySelector(".gd-quanhe") ? tr.querySelector(".gd-quanhe").value : "",
-            tuoi: tr.querySelector(".gd-tuoi") ? tr.querySelector(".gd-tuoi").value : "",
-            songChung: songChungEl ? songChungEl.value : "",
-            ngheNghiep: tr.querySelector(".gd-nghe") ? tr.querySelector(".gd-nghe").value : "",
-            thuNhap: tr.querySelector(".gd-thunhap") ? tr.querySelector(".gd-thunhap").value : "",
-            daMat: daMatEl ? daMatEl.checked : false,
-        });
+  const giaDinh = [];
+  const tbGd = timTbody('giadinh');
+  if (tbGd) {
+    tbGd.querySelectorAll('tr').forEach((row) => {
+      const quanHe = row.querySelector('.gd-quan-he')?.value.trim() || '';
+      const namSinh = row.querySelector('.gd-nam-sinh')?.value.trim() || '';
+      const songChung = row.querySelector('.gd-song-chung')?.value || '有';
+      const ngheNghiep = row.querySelector('.gd-nghe-nghiep')?.value.trim() || '';
+      const thuNhap = row.querySelector('.gd-thu-nhap')?.value.trim() || '';
+      const daMat = row.querySelector('.gd-da-mat')?.checked || false;
+      if (quanHe) giaDinh.push({ quanHe, namSinh, songChung, ngheNghiep, thuNhap, daMat });
     });
+  }
 
-    data.xuatNgoai = getVal("xuatNgoai");
-    data.xuatNgoaiNuoc = getVal("xuatNgoaiNuoc");
-    data.xuatNgoaiNoiDung = getVal("xuatNgoaiNoiDung");
-    data.theThaoTen = getVal("tenTheThao");
-    data.theThaoNam = getVal("soNamTheThao");
-    data.nguoiQuenNhat = getVal("coNguoiQuenNhat");
-    data.quanHeNguoiQuenNhat = getVal("nguoiQuenQuanHe");
-    data.nguoiQuenTuCach = getVal("nguoiQuenTuCach");
-    data.nguoiQuenNoiO = getVal("nguoiQuenNoiO");
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    id: document.getElementById('hoSoId')?.value || ('HS_' + Date.now()),
+    ngayChupAnh: getVal('ngayChupAnh') || getVal('ngayChup') || today,
+    hoTen: getVal('hoTen'),
+    furigana: getVal('furigana'),
+    gioiTinh: getSelect('gioiTinh') || 'Nam',
+    ngaySinh: getVal('ngaySinh'),
+    honNhan: getSelect('honNhan') || 'Chưa kết hôn',
+    queQuan: getVal('queQuan'),
+    soDienThoai: getVal('soDienThoai'),
+    thiLucTrai: getVal('thiLucTrai') || '1.0',
+    thiLucPhai: getVal('thiLucPhai') || '1.0',
+    tayThuan: getSelect('tayThuan') || 'Phải',
+    chieuCao: getVal('chieuCao'),
+    canNang: getVal('canNang'),
+    nhomMau: getSelect('nhomMau') || 'A',
+    hutThuoc: getSelect('hutThuoc') || 'Không',
+    uongRuou: getSelect('uongRuou') || 'Không',
+    hinhXam: getSelect('hinhXam') || 'Không',
+    soThich: getVal('soThich') || 'サッカー',
 
-    data.thoiGianHocTiengNhat = getVal("thoiGianHocTiengNhat");
-    data.baiMinna = getVal("baiMinna");
-    data.songTapTheNam = getVal("songTapTheNam");
-    data.songTapTheLoai = getVal("songTapTheLoai");
-    data.songTapTheSoNguoi = getVal("songTapTheSoNguoi");
-    data.songTapTheChiTiet =
-        (data.songTapTheLoai || "会社の寮") + "で" + (data.songTapTheSoNguoi || 6) + "人部屋で共同生活しました";
-    data.soThich = getVal("soThich");
-    data.tinhCach = getVal("tinhCach");
-    data.quanTamNhat = getVal("quanTamNhat");
+    tiengNhatTu: getVal('tiengNhatTu'),
+    tiengNhatDen: getVal('tiengNhatDen') || '現在',
+    tiengNhatTrungTam: getVal('tiengNhatTrungTam') || 'GICC日本語センター',
+    tiengNhatDiaChi: getVal('tiengNhatDiaChi') || 'HA NOI',
+    tiengNhatMon: getVal('tiengNhatMon') || '日本語学習',
+    tiengNhatCapDo: getVal('tiengNhatCapDo'),
+    tiengNhatThoiGian: getVal('tiengNhatThoiGian'),
+    tiengNhatBai: getVal('tiengNhatBai'),
 
-    return data;
+    nguoiQuenNhat: getSelect('nguoiQuenNhat') || 'khong',
+    nguoiQuenSoLuong: getVal('nguoiQuenSoLuong') || '1',
+    nguoiQuenQuanHe: getVal('nguoiQuenQuanHe'),
+    nguoiQuenTuCach: getVal('nguoiQuenTuCach'),
+    nguoiQuenCongViec: getVal('nguoiQuenCongViec'),
+    nguoiQuenNoiO: getVal('nguoiQuenNoiO'),
+
+    diNuocNgoai: getSelect('diNuocNgoai') || 'khong',
+    diNuocNgoaiNuoc: getVal('diNuocNgoaiNuoc'),
+    diNuocNgoaiMucDich: getVal('diNuocNgoaiMucDich'),
+    diNuocNgoaiThoiGian: getVal('diNuocNgoaiThoiGian'),
+    theThaoTen: getVal('theThaoTen'),
+    theThaoThoiGian: getVal('theThaoThoiGian'),
+
+    lyDoDiNhat: getVal('lyDoDiNhat'),
+    mucTieuVeNuoc: getVal('mucTieuVeNuoc'),
+    soTienTietKiem: getVal('soTienTietKiem'),
+    diemManh: getVal('diemManh'),
+    diemYeu: getVal('diemYeu'),
+
+    hocVan,
+    congViec,
+    bangCap,
+    giaDinh
+  };
 }
 
-function doDuLieuLenForm(hs) {
-    if (!hs) return;
-    setVal("hoTen", hs.hoTen);
-    setVal("tenKatakana", hs.tenKatakana);
-    setVal("ngaySinh", hs.ngaySinh);
-    setVal("tuoi", hs.tuoi);
-    setVal("gioiTinh", hs.gioiTinh);
-    setVal("honNhan", hs.honNhan);
-    setVal("diaChiTinh", hs.diaChiTinh);
-    setVal("diaChiHuyen", hs.diaChiHuyen);
-    setVal("diaChiXa", hs.diaChiXa);
-    setTonGiao(hs.tonGiao);
-    setVal("chieuCao", hs.chieuCao);
-    setVal("canNang", hs.canNang);
-    setVal("nhomMau", hs.nhomMau);
-    setVal("tayThuan", hs.tayThuan);
-    setVal("thiLucPhai", hs.thiLucPhai);
-    setVal("thiLucTrai", hs.thiLucTrai);
-    setVal("muMau", hs.muMau);
-    setVal("hutThuoc", hs.hutThuoc);
-    setVal("xamMinh", hs.xamMinh);
-    setVal("ngayChupAnh", hs.ngayChupAnh);
-    setVal("iq1", hs.iq1);
-    setVal("iq2", hs.iq2);
-    setVal("iq3", hs.iq3);
-    setVal("iq4", hs.iq4);
+function doDuLieuVaoForm(hs) {
+  if (!hs) return;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    if (el) el.value = val !== undefined && val !== null ? val : '';
+  };
 
-    setVal("bacHocCaoNhat", hs.bacHocCaoNhat);
-    setVal("tiengNhatTu", hs.tiengNhatTu);
-    setVal("tiengNhatDen", hs.tiengNhatDen);
-    setVal("tiengNhatDiaDiem", hs.tiengNhatDiaDiem);
-    setVal("tiengNhatTruong", hs.tiengNhatTruong);
-    setVal("tiengNhatMon", hs.tiengNhatMon);
+  setVal('hoSoId', hs.id);
+  setVal('ngayChupAnh', hs.ngayChupAnh || new Date().toISOString().slice(0, 10));
+  setVal('ngayChup', hs.ngayChupAnh || new Date().toISOString().slice(0, 10));
+  setVal('hoTen', hs.hoTen);
+  setVal('furigana', hs.furigana);
+  setVal('gioiTinh', hs.gioiTinh);
+  setVal('ngaySinh', hs.ngaySinh);
+  setVal('honNhan', hs.honNhan);
+  setVal('queQuan', hs.queQuan);
+  setVal('soDienThoai', hs.soDienThoai);
+  setVal('thiLucTrai', hs.thiLucTrai);
+  setVal('thiLucPhai', hs.thiLucPhai);
+  setVal('tayThuan', hs.tayThuan);
+  setVal('chieuCao', hs.chieuCao);
+  setVal('canNang', hs.canNang);
+  setVal('nhomMau', hs.nhomMau);
+  setVal('hutThuoc', hs.hutThuoc);
+  setVal('uongRuou', hs.uongRuou);
+  setVal('hinhXam', hs.hinhXam);
+  setVal('soThich', hs.soThich || 'サッカー');
 
-    const hocVanBody = document.getElementById("hocVanBody");
-    if (hocVanBody) {
-        hocVanBody.innerHTML = "";
-        const list = Array.isArray(hs.hocVan) && hs.hocVan.length > 0 ? hs.hocVan : [{}];
-        list.forEach((item) => hocVanBody.appendChild(createHocVanRow(item)));
-    }
+  setVal('tiengNhatTu', hs.tiengNhatTu);
+  setVal('tiengNhatDen', hs.tiengNhatDen || '現在');
+  setVal('tiengNhatTrungTam', hs.tiengNhatTrungTam || 'GICC日本語センター');
+  setVal('tiengNhatDiaChi', hs.tiengNhatDiaChi || 'HA NOI');
+  setVal('tiengNhatMon', hs.tiengNhatMon || '日本語学習');
+  setVal('tiengNhatCapDo', hs.tiengNhatCapDo);
+  setVal('tiengNhatThoiGian', hs.tiengNhatThoiGian);
+  setVal('tiengNhatBai', hs.tiengNhatBai);
 
-    const congViecBody = document.getElementById("quaTrinhLamViecBody");
-    if (congViecBody) {
-        congViecBody.innerHTML = "";
-        const list = Array.isArray(hs.quaTrinhLamViec) ? hs.quaTrinhLamViec : [];
-        list.forEach((item) => congViecBody.appendChild(createCongViecRow(item)));
-    }
+  setVal('nguoiQuenNhat', hs.nguoiQuenNhat || 'khong');
+  setVal('nguoiQuenSoLuong', hs.nguoiQuenSoLuong || '1');
+  setVal('nguoiQuenQuanHe', hs.nguoiQuenQuanHe);
+  setVal('nguoiQuenTuCach', hs.nguoiQuenTuCach);
+  setVal('nguoiQuenCongViec', hs.nguoiQuenCongViec);
+  setVal('nguoiQuenNoiO', hs.nguoiQuenNoiO);
 
-    const bangCapBody = document.getElementById("bangCapBody");
-    if (bangCapBody) {
-        bangCapBody.innerHTML = "";
-        const list = Array.isArray(hs.bangCap) && hs.bangCap.length > 0 ? hs.bangCap : [{ ten: "高校卒業証書" }];
-        list.forEach((item) => bangCapBody.appendChild(createBangCapRow(item)));
-    }
+  setVal('diNuocNgoai', hs.diNuocNgoai || 'khong');
+  setVal('diNuocNgoaiNuoc', hs.diNuocNgoaiNuoc);
+  setVal('diNuocNgoaiMucDich', hs.diNuocNgoaiMucDich);
+  setVal('diNuocNgoaiThoiGian', hs.diNuocNgoaiThoiGian);
+  setVal('theThaoTen', hs.theThaoTen);
+  setVal('theThaoThoiGian', hs.theThaoThoiGian);
 
-    const giaDinhBody = document.getElementById("giaDinhBody");
-    if (giaDinhBody) {
-        giaDinhBody.innerHTML = "";
-        const list = Array.isArray(hs.giaDinh) && hs.giaDinh.length > 0 ? hs.giaDinh : [{ quanHe: "父" }, { quanHe: "母" }];
-        list.forEach((item) => giaDinhBody.appendChild(createGiaDinhRow(item)));
-    }
+  setVal('lyDoDiNhat', hs.lyDoDiNhat);
+  setVal('mucTieuVeNuoc', hs.mucTieuVeNuoc);
+  setVal('soTienTietKiem', hs.soTienTietKiem);
+  setVal('diemManh', hs.diemManh);
+  setVal('diemYeu', hs.diemYeu);
 
-    setVal("xuatNgoai", hs.xuatNgoai);
-    setVal("xuatNgoaiNuoc", hs.xuatNgoaiNuoc);
-    setVal("xuatNgoaiNoiDung", hs.xuatNgoaiNoiDung);
-    if (typeof capNhatKhoaXuatNgoai === "function") capNhatKhoaXuatNgoai();
+  const tbHv = timTbody('hocvan');
+  if (tbHv) {
+    tbHv.innerHTML = '';
+    if (hs.hocVan && hs.hocVan.length > 0) hs.hocVan.forEach(item => themDongHocVan(item));
+    else khoiTaoBangHocVan();
+  }
 
-    setVal("tenTheThao", hs.theThaoTen);
-    setVal("soNamTheThao", hs.theThaoNam);
-    setVal("coNguoiQuenNhat", hs.nguoiQuenNhat);
-    setVal("nguoiQuenQuanHe", hs.quanHeNguoiQuenNhat);
-    setVal("nguoiQuenTuCach", hs.nguoiQuenTuCach);
-    setVal("nguoiQuenNoiO", hs.nguoiQuenNoiO);
+  const tbCv = timTbody('congviec');
+  if (tbCv) {
+    tbCv.innerHTML = '';
+    if (hs.congViec && hs.congViec.length > 0) hs.congViec.forEach(item => themDongCongViec(item));
+    else khoiTaoBangCongViec();
+  }
 
-    setVal("thoiGianHocTiengNhat", hs.thoiGianHocTiengNhat);
-    setVal("baiMinna", hs.baiMinna);
-    setVal("songTapTheNam", hs.songTapTheNam);
-    setVal("songTapTheLoai", hs.songTapTheLoai);
-    setVal("songTapTheSoNguoi", hs.songTapTheSoNguoi);
+  const tbBc = timTbody('bangcap');
+  if (tbBc) {
+    tbBc.innerHTML = '';
+    if (hs.bangCap && hs.bangCap.length > 0) hs.bangCap.forEach(item => themDongBangCap(item));
+    else khoiTaoBangBangCap();
+  }
 
-    const selectSoThichEl = document.getElementById("selectSoThich");
-    if (selectSoThichEl) {
-        const options = Array.from(selectSoThichEl.options).map((opt) => opt.value);
-        if (hs.soThich && options.includes(hs.soThich)) {
-            selectSoThichEl.value = hs.soThich;
-        } else if (hs.soThich) {
-            selectSoThichEl.value = "khac";
-        }
-    }
-    setVal("soThich", hs.soThich);
-    if (hs.soThich) {
-        const soThichEl = document.getElementById("soThich");
-        if (soThichEl) {
-            const isKhac = !selectSoThichEl || selectSoThichEl.value === "khac";
-            soThichEl.readOnly = !isKhac;
-            soThichEl.className = isKhac
-                ? "border rounded px-2 py-1.5 bg-white text-gray-800 ml-2"
-                : "border rounded px-2 py-1.5 bg-gray-100 text-gray-600 ml-2";
-        }
-    }
-    setVal("tinhCach", hs.tinhCach);
-    setVal("quanTamNhat", hs.quanTamNhat);
+  const tbGd = timTbody('giadinh');
+  if (tbGd) {
+    tbGd.innerHTML = '';
+    if (hs.giaDinh && hs.giaDinh.length > 0) hs.giaDinh.forEach(item => themDongGiaDinh(item));
+    else khoiTaoBangGiaDinh();
+  }
 
-    const katakanaEl = document.getElementById("tenKatakana");
-    if (katakanaEl) katakanaEl.dataset.userEdited = "true";
+  capNhatTrangThaiXuatNgoai();
+  const selNguoiQuen = document.getElementById('nguoiQuenNhat');
+  if (selNguoiQuen) selNguoiQuen.dispatchEvent(new Event('change'));
 }
 
 function xoaTrangForm() {
-    const ids = [
-        "hoTen", "tenKatakana", "ngaySinh", "tuoi", "gioiTinh", "honNhan",
-        "diaChiTinh", "diaChiHuyen", "diaChiXa",
-        "chieuCao", "canNang", "nhomMau", "tayThuan", "thiLucPhai", "thiLucTrai",
-        "muMau", "hutThuoc", "xamMinh",
-        "ngayChupAnh", "iq1", "iq2", "iq3", "iq4",
-        "xuatNgoai", "xuatNgoaiNuoc", "xuatNgoaiNoiDung",
-        "tenTheThao", "soNamTheThao",
-        "coNguoiQuenNhat", "nguoiQuenQuanHe", "nguoiQuenTuCach", "nguoiQuenNoiO",
-        "thoiGianHocTiengNhat", "baiMinna", "songTapTheNam",
-        "songTapTheLoai", "songTapTheSoNguoi",
-        "soThich", "tinhCach", "quanTamNhat",
-    ];
-    ids.forEach((id) => setVal(id, ""));
+  const form = document.querySelector('form') || document.body;
+  const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]):not([type="reset"])');
+  inputs.forEach(input => {
+    if (input.type === 'checkbox' || input.type === 'radio') input.checked = false;
+    else input.value = '';
+  });
 
-    // Tôn giáo: trả về lựa chọn đầu tiên và ẩn ô "Khác"
-    const tonGiaoEl = document.getElementById("tonGiao");
-    if (tonGiaoEl) tonGiaoEl.selectedIndex = 0;
-    const tonGiaoKhacEl = document.getElementById("tonGiaoKhac");
-    if (tonGiaoKhacEl) { tonGiaoKhacEl.value = ""; tonGiaoKhacEl.style.display = "none"; }
+  const selects = form.querySelectorAll('select');
+  selects.forEach(sel => { sel.selectedIndex = 0; });
+  const textareas = form.querySelectorAll('textarea');
+  textareas.forEach(ta => { ta.value = ''; });
 
-    if (typeof capNhatKhoaXuatNgoai === "function") capNhatKhoaXuatNgoai();
-    const katakanaEl = document.getElementById("tenKatakana");
-    if (katakanaEl) delete katakanaEl.dataset.userEdited;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    if (el) el.value = val;
+  };
 
-    // Bậc học cao nhất: trả về lựa chọn đầu tiên (mặc định), không xóa trắng
-    const bacHocEl = document.getElementById("bacHocCaoNhat");
-    if (bacHocEl) bacHocEl.selectedIndex = 0;
+  setVal('hoSoId', 'HS_' + Date.now());
+  const today = new Date().toISOString().slice(0, 10);
+  setVal('ngayChupAnh', today);
+  setVal('ngayChup', today);
+  setVal('tiengNhatDen', '現在');
+  setVal('tiengNhatTrungTam', 'GICC日本語センター');
+  setVal('tiengNhatDiaChi', 'HA NOI');
+  setVal('tiengNhatMon', '日本語学習');
+  setVal('soThich', 'サッカー');
+  setVal('thiLucTrai', '1.0');
+  setVal('thiLucPhai', '1.0');
+  setVal('nguoiQuenSoLuong', '1');
 
-    // Dòng tiếng Nhật cố định: giữ nguyên giá trị mặc định có sẵn trong HTML, không xóa trắng
-    setVal("tiengNhatTu", "10/2026");
-    setVal("tiengNhatTruong", "GICC日本語センター");
-    const diaDiemEl = document.getElementById("tiengNhatDiaDiem");
-    if (diaDiemEl) diaDiemEl.selectedIndex = 0;
-
-    themDongHocVanMacDinh();
-    themDongCongViecMacDinh();
-    themDongBangCapMacDinh();
-    themDongGiaDinhMacDinh();
+  khoiTaoBangHocVan();
+  khoiTaoBangCongViec();
+  khoiTaoBangBangCap();
+  khoiTaoBangGiaDinh();
+  capNhatTrangThaiXuatNgoai();
 }
 
-function layDanhSach() {
-    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch (e) { return []; }
-}
-function luuDanhSach(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+// 10. LƯU HỒ SƠ & HIỂN THỊ DANH SÁCH HỌC SINH ĐÃ LƯU
+function xuLyLuuHoSo() {
+  const hs = thuThapFormData();
+  if (!hs.hoTen) {
+    alert('Vui lòng nhập họ và tên ứng viên trước khi lưu!');
+    return;
+  }
 
-function luuHoSo() {
-    const hoTen = getVal("hoTen").trim();
-    if (!hoTen) { alert("Vui lòng nhập Họ tên trước khi lưu hồ sơ!"); return; }
-    const studentData = collectFormData();
-    const list = layDanhSach();
-    if (dangSuaIndex >= 0 && dangSuaIndex < list.length) {
-        studentData.stt = dangSuaIndex + 1;
-        list[dangSuaIndex] = studentData;
-        dangSuaIndex = -1;
-        const btnLuu = document.getElementById("btnLuuHoSo");
-        if (btnLuu) btnLuu.innerText = "💾 Lưu & Nhập tiếp";
-        list.forEach((item, index) => { item.stt = index + 1; });
-        luuDanhSach(list);
-        alert("Cập nhật hồ sơ thành công!");
-    } else {
-        list.push(studentData);
-        list.forEach((item, index) => { item.stt = index + 1; });
-        luuDanhSach(list);
-        alert("Lưu hồ sơ mới thành công!");
+  const list = layDanhSachHoSo();
+  const existingIdx = list.findIndex(item => item.id === hs.id);
+  if (existingIdx >= 0) {
+    list[existingIdx] = hs;
+  } else {
+    list.push(hs);
+  }
+
+  luuDanhSachHoSo(list);
+  capNhatBangDanhSach(list);
+  alert(`Đã lưu thành công hồ sơ của: ${hs.hoTen.toUpperCase()}`);
+}
+
+function capNhatBangDanhSach(list) {
+  let tbody = document.querySelector('#table-danh-sach tbody') ||
+              document.querySelector('#table-danh-sach-ung-vien tbody') ||
+              document.querySelector('#danh-sach-hoc-sinh tbody');
+
+  if (!tbody) {
+    const allTables = document.querySelectorAll('table');
+    for (const t of allTables) {
+      if (t.textContent.includes('Họ tên') && t.textContent.includes('Ngày sinh') && (t.textContent.includes('Giới tính') || t.textContent.includes('Thao tác'))) {
+        tbody = t.querySelector('tbody') || t;
+        break;
+      }
     }
-    xoaTrangForm();
-    renderDanhSachHocSinh();
-}
+  }
 
-function renderDanhSachHocSinh() {
-    const tbody = document.getElementById("danhSachHocSinhBody");
-    if (!tbody) return;
-    const list = layDanhSach();
-    tbody.innerHTML = "";
-    list.forEach((hs, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${hs.hoTen || ""}</td>
-      <td>${hs.tenKatakana || ""}</td>
-      <td>${hs.ngaySinh || ""}</td>
-      <td>
-        <button type="button" class="btn-sua" data-index="${index}">Sửa</button>
-        <button type="button" class="btn-xoa" data-index="${index}">Xóa</button>
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  list.forEach((hs, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b hover:bg-gray-50';
+    tr.innerHTML = `
+      <td class="p-2 text-center font-bold">${idx + 1}</td>
+      <td class="p-2 font-semibold">${hs.hoTen ? hs.hoTen.toUpperCase() : ''}</td>
+      <td class="p-2 text-center">${hs.ngaySinh || ''}</td>
+      <td class="p-2 text-center">${hs.gioiTinh || ''}</td>
+      <td class="p-2 text-center space-x-2">
+        <button type="button" class="btn-sua-hs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm">Sửa</button>
+        <button type="button" class="btn-xoa-hs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">Xóa</button>
       </td>
     `;
-        tbody.appendChild(tr);
-    });
-    tbody.querySelectorAll(".btn-sua").forEach((btn) => btn.addEventListener("click", () => suaHoSo(parseInt(btn.dataset.index, 10))));
-    tbody.querySelectorAll(".btn-xoa").forEach((btn) => btn.addEventListener("click", () => xoaHoSo(parseInt(btn.dataset.index, 10))));
+    tr.querySelector('.btn-sua-hs').onclick = () => doDuLieuVaoForm(hs);
+    tr.querySelector('.btn-xoa-hs').onclick = () => {
+      if (confirm(`Bạn có chắc muốn xóa ứng viên: ${hs.hoTen}?`)) {
+        const curList = layDanhSachHoSo().filter(item => item.id !== hs.id);
+        luuDanhSachHoSo(curList);
+        capNhatBangDanhSach(curList);
+        xoaTrangForm();
+      }
+    };
+    tbody.appendChild(tr);
+  });
 }
 
-function suaHoSo(index) {
-    const list = layDanhSach();
-    const hs = list[index];
-    if (!hs) return;
-    dangSuaIndex = index;
-    const btnLuu = document.getElementById("btnLuuHoSo");
-    if (btnLuu) btnLuu.innerText = "💾 Cập nhật thay đổi";
-    doDuLieuLenForm(hs);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-}
+// 11. BẮT SỰ KIỆN CLICK TOÀN TRANG (EVENT DELEGATION - BẤM LÀ ĂN NGAY)
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const txt = (btn.textContent || '').trim();
 
-function xoaHoSo(index) {
-    if (!confirm("Bạn có chắc muốn xóa hồ sơ này?")) return;
-    const list = layDanhSach();
-    list.splice(index, 1);
-    list.forEach((item, i) => { item.stt = i + 1; });
-    luuDanhSach(list);
-    if (dangSuaIndex === index || dangSuaIndex >= list.length) {
-        dangSuaIndex = -1;
-        const btnLuu = document.getElementById("btnLuuHoSo");
-        if (btnLuu) btnLuu.innerText = "💾 Lưu & Nhập tiếp";
+  // Thêm dòng các bảng
+  if (txt.includes('Thêm dòng học vấn') || txt.includes('Thêm học vấn')) {
+    e.preventDefault();
+    themDongHocVan();
+  } else if (txt.includes('Thêm dòng công việc') || txt.includes('Thêm công việc')) {
+    e.preventDefault();
+    themDongCongViec();
+  } else if (txt.includes('Thêm bằng cấp')) {
+    e.preventDefault();
+    themDongBangCap();
+  } else if (txt.includes('Thêm thành viên') || txt.includes('Thêm gia đình')) {
+    e.preventDefault();
+    themDongGiaDinh();
+  } else if (btn.classList.contains('btn-xoa-dong') || txt === 'Xóa') {
+    e.preventDefault();
+    const tr = btn.closest('tr');
+    if (tr) tr.remove();
+  }
+
+  // Nút Lưu hồ sơ
+  else if (txt.includes('Lưu hồ sơ') || btn.id === 'btn-luu' || btn.id === 'btnLuu' || btn.id === 'btn-save') {
+    e.preventDefault();
+    xuLyLuuHoSo();
+  }
+
+  // Nút Xuất Excel
+  else if (txt.includes('Xuất Excel') || btn.id === 'btn-xuat-excel' || btn.id === 'btnXuatExcel') {
+    e.preventDefault();
+    if (typeof window.xuatExcelPhoThong === 'function') {
+      window.xuatExcelPhoThong();
+    } else if (typeof window.xuatExcel === 'function') {
+      window.xuatExcel();
+    } else {
+      alert('Đang nạp file excel-export.js, vui lòng thử lại sau 2 giây!');
     }
-    renderDanhSachHocSinh();
+  }
+});
+
+// 12. KHỞI TẠO HỆ THỐNG
+function khoiTaoGiaoDien() {
+  const tbHv = timTbody('hocvan');
+  if (tbHv && tbHv.children.length === 0) khoiTaoBangHocVan();
+
+  const tbCv = timTbody('congviec');
+  if (tbCv && tbCv.children.length === 0) khoiTaoBangCongViec();
+
+  const tbBc = timTbody('bangcap');
+  if (tbBc && tbBc.children.length === 0) khoiTaoBangBangCap();
+
+  const tbGd = timTbody('giadinh');
+  if (tbGd && tbGd.children.length === 0) khoiTaoBangGiaDinh();
+
+  const inpDate = document.getElementById('ngayChupAnh') || document.getElementById('ngayChup');
+  if (inpDate && !inpDate.value) inpDate.value = new Date().toISOString().slice(0, 10);
+
+  const selXn = document.getElementById('diNuocNgoai') || document.querySelector('[name="diNuocNgoai"]');
+  if (selXn) {
+    selXn.addEventListener('change', capNhatTrangThaiXuatNgoai);
+    capNhatTrangThaiXuatNgoai();
+  }
+
+  const list = layDanhSachHoSo();
+  capNhatBangDanhSach(list);
+  if (list.length > 0) {
+    doDuLieuVaoForm(list[0]);
+  }
 }
 
-function initKatakanaEditableGuard() {
-    const katakanaEl = document.getElementById("tenKatakana");
-    if (!katakanaEl) return;
-    katakanaEl.addEventListener("input", () => { katakanaEl.dataset.userEdited = "true"; });
+khoiTaoGiaoDien();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', khoiTaoGiaoDien);
 }
+window.addEventListener('load', khoiTaoGiaoDien);
 
-function initTinhTuoi() {
-    const ngaySinhEl = document.getElementById("ngaySinh");
-    if (!ngaySinhEl) return;
-    ngaySinhEl.addEventListener("change", () => {
-        if (typeof calculateAge === "function") {
-            const tuoi = calculateAge(ngaySinhEl.value);
-            if (tuoi !== null && tuoi !== undefined) { setVal("tuoi", tuoi); }
-        }
-    });
-}
+// Xuất các hàm ra window
+window.layDanhSachHoSo = layDanhSachHoSo;
+window.luuDanhSachHoSo = luuDanhSachHoSo;
+window.thuThapFormData = thuThapFormData;
+window.doDuLieuVaoForm = doDuLieuVaoForm;
+window.xoaTrangForm = xoaTrangForm;
+window.xuLyLuuHoSo = xuLyLuuHoSo;
+window.luuHoSo = xuLyLuuHoSo;
 
-// Requirement #5: khóa 2 trường Tên nước/Nội dung khi chọn "Không"
-function capNhatKhoaXuatNgoai() {
-    const selectEl = document.getElementById("xuatNgoai");
-    const nuocEl = document.getElementById("xuatNgoaiNuoc");
-    const noiDungEl = document.getElementById("xuatNgoaiNoiDung");
-    if (!selectEl) return;
-    const isKhong = selectEl.value === "Không" || selectEl.value === "無" || selectEl.value === "";
-    [nuocEl, noiDungEl].forEach((el) => {
-        if (!el) return;
-        el.disabled = isKhong;
-        el.classList.toggle("opacity-50", isKhong);
-        el.classList.toggle("bg-gray-100", isKhong);
-        if (isKhong) el.value = "";
-    });
-}
+window.themDongHocVan = themDongHocVan;
+window.themDongCongViec = themDongCongViec;
+window.themDongBangCap = themDongBangCap;
+window.themDongGiaDinh = themDongGiaDinh;
 
-function initXuatNgoai() {
-    const selectEl = document.getElementById("xuatNgoai");
-    if (!selectEl) return;
-    selectEl.addEventListener("change", capNhatKhoaXuatNgoai);
-    capNhatKhoaXuatNgoai();
-}
+window.khoiTaoBangHocVan = khoiTaoBangHocVan;
+window.khoiTaoBangCongViec = khoiTaoBangCongViec;
+window.khoiTaoBangBangCap = khoiTaoBangBangCap;
+window.khoiTaoBangGiaDinh = khoiTaoBangGiaDinh;
+window.GOI_Y_TEMPLATES = GOI_Y_TEMPLATES;
 
-// Hiện/ẩn ô nhập tự do khi chọn Tôn giáo "Khác"
-function initTonGiao() {
-    const tonGiaoEl = document.getElementById("tonGiao");
-    const tonGiaoKhacEl = document.getElementById("tonGiaoKhac");
-    if (!tonGiaoEl || !tonGiaoKhacEl) return;
-    tonGiaoKhacEl.style.display = tonGiaoEl.value === "Khác" ? "inline-block" : "none";
-}
-
-function initThemDongButtons() {
-    const btnHocVan = document.getElementById("btnThemHocVan");
-    if (btnHocVan) { btnHocVan.addEventListener("click", () => { const tbody = document.getElementById("hocVanBody"); if (tbody) tbody.appendChild(createHocVanRow({})); }); }
-    const btnCongViec = document.getElementById("btnThemCongViec");
-    if (btnCongViec) { btnCongViec.addEventListener("click", () => { const tbody = document.getElementById("quaTrinhLamViecBody"); if (tbody) tbody.appendChild(createCongViecRow({})); }); }
-    const btnBangCap = document.getElementById("btnThemBangCap");
-    if (btnBangCap) { btnBangCap.addEventListener("click", () => { const tbody = document.getElementById("bangCapBody"); if (tbody) tbody.appendChild(createBangCapRow({})); }); }
-    const btnGiaDinh = document.getElementById("btnThemGiaDinh");
-    if (btnGiaDinh) { btnGiaDinh.addEventListener("click", () => { const tbody = document.getElementById("giaDinhBody"); if (tbody) tbody.appendChild(createGiaDinhRow({})); }); }
-}
-
-function initStorage() {
-    initKatakanaEditableGuard();
-    initTinhTuoi();
-    initThemDongButtons();
-    initXuatNgoai();
-    initTonGiao();
-    themDongHocVanMacDinh();
-    themDongCongViecMacDinh();
-    themDongBangCapMacDinh();
-    themDongGiaDinhMacDinh();
-    const btnLuu = document.getElementById("btnLuuHoSo");
-    if (btnLuu) { btnLuu.addEventListener("click", luuHoSo); }
-    renderDanhSachHocSinh();
-}
-document.addEventListener("DOMContentLoaded", initStorage);
+console.log('[NhapForm] storage.js đã nạp thành công!');
