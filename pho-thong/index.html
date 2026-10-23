@@ -4,11 +4,35 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Form Nhập Hồ Sơ - Phổ Thông</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>📄</text></svg>" />
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
 <div class="max-w-5xl mx-auto bg-white rounded-xl shadow p-6 space-y-6">
   <h1 class="text-2xl font-bold text-center">FORM NHẬP HỒ SƠ - PHỔ THÔNG</h1>
+
+  <!-- KHỐI THÔNG TIN ĐỢT TUYỂN (ghi vào sheet 名簿) -->
+  <fieldset class="border rounded p-4 bg-amber-50">
+    <legend class="font-semibold px-2">Thông tin đợt tuyển (ghi vào sheet 名簿)</legend>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <label for="dotTenXiNghiep" class="block text-sm font-medium">Tên xí nghiệp tiếp nhận</label>
+        <input type="text" id="dotTenXiNghiep" placeholder="VD: 有限会社イーシー・キッツ" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="dotNghiepDoan" class="block text-sm font-medium">Nghiệp đoàn (監理団体)</label>
+        <input type="text" id="dotNghiepDoan" placeholder="VD: アセアン事業支援協同組合" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="dotNgheNghiep" class="block text-sm font-medium">Nghề nghiệp (職種)</label>
+        <input type="text" id="dotNgheNghiep" placeholder="VD: 内装仕上げ" class="border rounded px-2 py-1 w-full" />
+      </div>
+      <div>
+        <label for="dotNgayPhongVan" class="block text-sm font-medium">Ngày phỏng vấn (面接日)</label>
+        <input type="date" id="dotNgayPhongVan" class="border rounded px-2 py-1 w-full" />
+      </div>
+    </div>
+  </fieldset>
 
   <!-- KHỐI A: THÔNG TIN CÁ NHÂN -->
   <fieldset class="border rounded p-4">
@@ -45,16 +69,16 @@
         </select>
       </div>
       <div>
-        <label for="diaChiTinh" class="block text-sm font-medium">Tỉnh</label>
-        <input type="text" id="diaChiTinh" class="border rounded px-2 py-1 w-full" />
+        <label for="diaChiXa" class="block text-sm font-medium">Xã</label>
+        <input type="text" id="diaChiXa" class="border rounded px-2 py-1 w-full" />
       </div>
       <div>
         <label for="diaChiHuyen" class="block text-sm font-medium">Huyện</label>
         <input type="text" id="diaChiHuyen" class="border rounded px-2 py-1 w-full" />
       </div>
       <div>
-        <label for="diaChiXa" class="block text-sm font-medium">Xã</label>
-        <input type="text" id="diaChiXa" class="border rounded px-2 py-1 w-full" />
+        <label for="diaChiTinh" class="block text-sm font-medium">Tỉnh</label>
+        <input type="text" id="diaChiTinh" class="border rounded px-2 py-1 w-full" />
       </div>
       <div>
         <label for="tonGiao" class="block text-sm font-medium">Tôn giáo</label>
@@ -89,6 +113,7 @@
           <option value="B">B</option>
           <option value="O">O</option>
           <option value="AB">AB</option>
+          <option value="Chưa biết">Chưa biết (不明)</option>
         </select>
       </div>
       <div>
@@ -122,10 +147,15 @@
       </div>
       <div>
         <label for="xamMinh" class="block text-sm font-medium">Hình xăm</label>
-        <select id="xamMinh" class="border rounded px-2 py-1 w-full">
-          <option value="Không">Không</option>
-          <option value="Có">Có</option>
-        </select>
+        <div class="flex gap-2">
+          <select id="xamMinh" onchange="document.getElementById('xamMinhChiTiet').style.display = this.value === '有' ? 'block' : 'none'"
+            class="border rounded px-2 py-1 w-24">
+            <option value="無">無</option>
+            <option value="有">有</option>
+          </select>
+          <input type="text" id="xamMinhChiTiet" placeholder="Vị trí (vd: 左手、背中)" style="display:none;"
+            class="border rounded px-2 py-1 flex-1" />
+        </div>
       </div>
       <div>
         <label for="ngayChupAnh" class="block text-sm font-medium">Ngày chụp ảnh</label>
@@ -354,12 +384,15 @@
       </div>
       <div>
         <label for="songTapTheLoai" class="block text-sm font-medium">Loại hình</label>
-        <select id="songTapTheLoai" class="border rounded px-2 py-1.5">
+        <select id="songTapTheLoai" onchange="xuLyDoiLoaiOTro(this.value)" class="border rounded px-2 py-1.5">
           <option value="軍隊の寮">Ký túc xá quân đội (軍隊の寮)</option>
           <option value="日本語センターの寮">KTX trung tâm tiếng Nhật (日本語センターの寮)</option>
           <option value="アパート">Căn hộ / Phòng trọ (アパート)</option>
           <option value="会社の寮" selected>KTX công ty (会社の寮)</option>
+          <option value="__tu_dien__">Khác - tự điền...</option>
         </select>
+        <input type="text" id="songTapTheLoaiTuDien" placeholder="Tự điền loại hình (tiếng Nhật)"
+               class="border rounded px-2 py-1.5 mt-1.5 w-full bg-yellow-50" style="display:none;">
       </div>
       <div>
         <label for="songTapTheSoNguoi" class="block text-sm font-medium">Số người</label>
@@ -371,17 +404,19 @@
   <!-- KHỐI K: SỞ THÍCH -->
   <fieldset class="border rounded p-4">
     <legend class="font-semibold px-2">K. Sở thích</legend>
-    <select id="selectSoThich" onchange="xuLyDoiSoThich(this.value)" class="border rounded px-2 py-1.5">
-      <option value="サッカー" selected>サッカー (Bóng đá)</option>
-      <option value="音楽">音楽 (Âm nhạc)</option>
-      <option value="料理">料理 (Nấu ăn)</option>
-      <option value="映画">映画 (Xem phim)</option>
-      <option value="バドミントン">バドミントン (Cầu lông)</option>
-      <option value="ジョギング">ジョギング (Chạy bộ)</option>
-      <option value="読書">読書 (Đọc sách)</option>
-      <option value="khac">-- Tự nhập khác --</option>
-    </select>
-    <input type="text" id="soThich" value="サッカー" readonly class="border rounded px-2 py-1.5 bg-gray-100 text-gray-600 ml-2" />
+    <div class="flex flex-wrap items-start gap-2">
+      <select id="selectSoThich" onchange="xuLyDoiSoThich(this.value)" class="border rounded px-2 py-1.5">
+        <option value="サッカー" selected>サッカー (Bóng đá)</option>
+        <option value="音楽">音楽 (Âm nhạc)</option>
+        <option value="料理">料理 (Nấu ăn)</option>
+        <option value="映画">映画 (Xem phim)</option>
+        <option value="バドミントン">バドミントン (Cầu lông)</option>
+        <option value="ジョギング">ジョギング (Chạy bộ)</option>
+        <option value="読書">読書 (Đọc sách)</option>
+        <option value="khac">-- Tự nhập khác --</option>
+      </select>
+      <textarea id="soThich" rows="2" class="flex-1 min-w-[260px] border rounded px-2 py-1.5 bg-gray-100 text-gray-600" readonly>サッカー</textarea>
+    </div>
   </fieldset>
 
   <!-- KHỐI L: TỰ PHÂN TÍCH BẢN THÂN -->
@@ -427,9 +462,11 @@
   </fieldset>
 
   <!-- NÚT CUỐI FORM -->
-  <div class="flex gap-3">
+  <div class="flex flex-wrap gap-3">
     <button type="button" id="btnLuuHoSo" class="bg-green-600 text-white px-4 py-2 rounded font-semibold">Lưu hồ sơ</button>
     <button type="button" id="btnXuatExcelFull" class="bg-indigo-600 text-white px-4 py-2 rounded font-semibold">Xuất Excel</button>
+    <button type="button" id="btnNhapExcel" class="bg-amber-600 text-white px-4 py-2 rounded font-semibold">📂 Nhập từ Excel</button>
+    <input type="file" id="inputNhapExcel" accept=".xlsx,.xlsm" class="hidden" />
   </div>
 
   <!-- DANH SÁCH HỌC SINH -->
@@ -482,6 +519,43 @@
       oTinhCach.value = value;
     }
   }
+
+  // Logic khóa/mở ô tự điền loại hình ở trọ (Khối J)
+  function xuLyDoiLoaiOTro(value) {
+    var oTuDien = document.getElementById('songTapTheLoaiTuDien');
+    if (!oTuDien) return;
+    if (value === '__tu_dien__') {
+      oTuDien.style.display = 'block';
+      oTuDien.value = '';
+      oTuDien.focus();
+    } else {
+      oTuDien.style.display = 'none';
+      oTuDien.value = '';
+    }
+  }
+  // ===== Import Excel -> tự điền form (Req 12) =====
+  (function () {
+    function ganSuKienNhapExcel() {
+      var btn = document.getElementById('btnNhapExcel');
+      var input = document.getElementById('inputNhapExcel');
+      if (!btn || !input) return;
+      btn.addEventListener('click', function () { input.value = ''; input.click(); });
+      input.addEventListener('change', function () {
+        var f = input.files && input.files[0];
+        if (!f) return;
+        if (typeof window.nhapExcelPhoThong !== 'function') {
+          alert('Không tìm thấy hàm nhapExcelPhoThong() trong excel-export.js');
+          return;
+        }
+        window.nhapExcelPhoThong(f);
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ganSuKienNhapExcel);
+    } else {
+      ganSuKienNhapExcel();
+    }
+  })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="js/katakana.js"></script>
@@ -489,5 +563,6 @@
 <script src="js/templates.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/excel-export.js"></script>
+<script src="js/excel-import.js"></script>
 </body>
 </html>
