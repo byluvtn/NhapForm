@@ -605,11 +605,13 @@ async function xuatExcelPhoThong() {
       row.getCell(133).value = hs.iq4 ? Number(hs.iq4) : '';
       row.getCell(134).value = '';
 
-      // Cột 135 - 137: Ngày chụp ảnh
+      // Cột 135 - 137: Ngày chụp ảnh (định dạng 年月日)
       const dInfo = tachNgayThangNam(hs.ngayChup);
       row.getCell(135).value = dInfo.ngay;
       row.getCell(136).value = dInfo.thang;
       row.getCell(137).value = dInfo.nam;
+      // Ghi thêm cột 138: Ngày chụp ảnh đầy đủ 年月日
+      row.getCell(138).value = formatBirth(hs.ngayChup);
 
       // KẺ VIỀN THIN CHO TẤT CẢ 137 CỘT CỦA DÒNG NÀY TRONG 総合データ
       for (let c = 1; c <= 137; c++) {
@@ -682,6 +684,7 @@ async function xuatExcelPhoThong() {
               left: { style: 'thin', color: { argb: 'FF000000' } },
               right: { style: 'thin', color: { argb: 'FF000000' } }
             };
+            row.getCell(c).alignment = { wrapText: true, vertical: 'top', horizontal: 'left' };
           }
         } else {
           row.hidden = true;
@@ -698,6 +701,38 @@ async function xuatExcelPhoThong() {
         paperSize: 9,
         printArea: `A1:AD${10 + N}`
       };
+
+      // Đặt chiều rộng cột cho sheet 名簿 để hiển thị đầy đủ nội dung (ví dụ: lý do đến Nhật)
+      const colWidths = {
+        1: 5,   // STT
+        2: 12,  // Mã TRA
+        3: 15,  // Họ tên
+        4: 12,  // Ngày sinh
+        5: 6,   // Tuổi
+        6: 5,   // Giới tính
+        7: 8,   // Hôn nhân
+        8: 15,  // Xã
+        9: 15,  // Huyện
+        10: 15, // Tỉnh
+        11: 10, // Khoảng cách
+        12: 12, // Chiều cao
+        13: 10, // Cân nặng
+        14: 8,  // Nhóm máu
+        15: 6,  // Tay thuận
+        16: 8,  // Thị lực phải
+        17: 8,  // Thị lực trái
+        18: 8,  // ...
+        19: 8,  // ...
+        20: 12, // Học vấn từ
+        21: 12, // Học vấn đến
+        22: 15, // Tỉnh học vấn
+        23: 25, // Trường học
+        24: 15, // Khoa học
+        123: 40 // Lý do đến Nhật (日本に興味を持っていること)
+      };
+      Object.entries(colWidths).forEach(([col, width]) => {
+        wsMeibo.getColumn(parseInt(col, 10)).width = width;
+      });
     }
 
     // 3. ĐỒNG BỘ SHEET FORM CÁ NHÂN 1 ĐẾN 26 (CẬP NHẬT KẾT QUẢ VLOOKUP VÀ IQ)
