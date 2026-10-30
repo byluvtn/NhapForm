@@ -8,13 +8,24 @@
   let worker = null;
   let pdfjsLib = null;
 
+  function setStatus(msg) {
+    const el = document.getElementById('ocrStatus');
+    if (el) el.textContent = msg;
+  }
+
+  // Tesseract v5: createWorker(langs, oem, options) -> Promise<Worker>
+  // Logger phải truyền qua options.logger (không phải tham số thứ 2)
   async function ensureWorker() {
     if (worker) return worker;
-    worker = await Tesseract.createWorker(OCR_LANG, (m) => {
-      if (m.status === 'recognizing text') {
-        const el = document.getElementById('ocrStatus');
-        if (el) el.textContent = 'Đang nhận diện văn bản... ' + Math.round(m.progress * 100) + '%';
-      }
+    setStatus('Đang tải bộ nhận diện ngôn ngữ (lần đầu có thể mất 30-60 giây)...');
+    worker = await Tesseract.createWorker(OCR_LANG, 1, {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          setStatus('Đang nhận diện văn bản... ' + Math.round((m.progress || 0) * 100) + '%');
+        } else if (m.status) {
+          setStatus('Đang chuẩn bị OCR: ' + m.status + '...');
+        }
+      },
     });
     return worker;
   }
@@ -25,6 +36,11 @@
     if (!pdfjsLib) {
       throw new Error('pdf.js chưa tải được');
     }
+    // pdf.js v3 cần workerSrc để render
+    if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    }
     return pdfjsLib;
   }
 
@@ -34,6 +50,7 @@
     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     const images = [];
     for (let i = 1; i <= pdf.numPages; i++) {
+      setStatus('Đang chuyển PDF sang ảnh... trang ' + i + '/' + pdf.numPages);
       const page = await pdf.getPage(i);
       const viewport = page.getViewport({ scale: 2.0 });
       const canvas = document.createElement('canvas');
@@ -133,35 +150,36 @@
     if (data.honNhan) set('honNhan', data.honNhan);
     if (data.ngheNghiep) set('ngheNghiep', data.ngheNghiep);
     if (data.lyDoDiNhat) set('lyDoDiNhat', data.lyDoDiNhat);
-
-    const status = document.getElementById('ocrStatus');
-    if (status) status.textContent = 'Đã OCR xong. Vui lòng kiểm tra lại các thông tin đã điền.';
   }
 
   async function processFile(file) {
-    const status = document.getElementById('ocrStatus');
-    if (status) status.textContent = 'Đang xử lý file...';
+    setStatus('Đang xử lý file...');
 
     let images = [];
-    if (file.type === 'application/pdf') {
+    if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
       images = await pdfToImages(file);
     } else {
       images.push(URL.createObjectURL(file));
     }
 
     let allText = '';
-    for (const imgSrc of images) {
+    for (let i = 0; i < images.length; i++) {
+      const imgSrc = images[i];
+      if (images.length > 1) setStatus('Đang OCR trang ' + (i + 1) + '/' + images.length + '...');
       const img = document.createElement('img');
       img.src = imgSrc;
-      await new Promise((r) => (img.onload = r));
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Không đọc được ảnh'));
+      });
       const text = await ocrImageElement(img);
-      allText += '\n--- Trang ---\n' + text;
-      URL.revokeObjectURL(imgSrc);
+      allText += '\n--- Trang ' + (i + 1) + ' ---\n' + text;
+      if (imgSrc.startsWith('blob:')) URL.revokeObjectURL(imgSrc);
     }
 
     const data = parseOcrText(allText);
     autoFillForm(data);
-    if (status) status.textContent = 'Hoàn tất OCR. Vui lòng kiểm tra và bổ sung thông tin còn thiếu.';
+    setStatus('Hoàn tất OCR. Vui lòng kiểm tra và bổ sung thông tin còn thiếu.');
   }
 
   document.getElementById('btnOcrPdf').addEventListener('click', () => {
@@ -175,8 +193,9 @@
       await processFile(file);
     } catch (err) {
       console.error(err);
-      const status = document.getElementById('ocrStatus');
-      if (status) status.textContent = 'Lỗi OCR: ' + err.message;
+      setStatus('Lỗi OCR: ' + (err && err.message ? err.message : err));
+    } finally {
+      e.target.value = '';
     }
   });
 })();
