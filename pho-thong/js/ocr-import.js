@@ -1,5 +1,5 @@
 // ocr-import.js - OCR từ ảnh/PDF để tự động điền form nhập phổ thông
-// Sử dụng Tesseract.js (chạy trong trình duyệt) + pdf.js để đọc PDF
+// Sử dụng Tesseract.js v5 (chạy trong trình duyệt) + pdf.js để đọc PDF
 
 (function () {
   'use strict';
@@ -10,17 +10,12 @@
 
   async function ensureWorker() {
     if (worker) return worker;
-    worker = Tesseract.createWorker({
-      logger: (m) => {
-        if (m.status === 'recognizing text') {
-          const el = document.getElementById('ocrStatus');
-          if (el) el.textContent = 'Đang nhận diện văn bản... ' + Math.round(m.progress * 100) + '%';
-        }
-      },
+    worker = await Tesseract.createWorker(OCR_LANG, (m) => {
+      if (m.status === 'recognizing text') {
+        const el = document.getElementById('ocrStatus');
+        if (el) el.textContent = 'Đang nhận diện văn bản... ' + Math.round(m.progress * 100) + '%';
+      }
     });
-    await worker.load();
-    await worker.loadLanguage(OCR_LANG);
-    await worker.initialize(OCR_LANG);
     return worker;
   }
 
