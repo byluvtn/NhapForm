@@ -3,6 +3,8 @@
  * Kẻ viền đầy đủ, Hỗ trợ N > 8 ứng viên trong Meibo, Viết hoa toàn bộ và Xuất điểm IQ
  */
 
+
+
 // Chuyển tiếng Việt thành không dấu và IN HOA
 function boDauVaInHoa(str) {
   if (!str) return '';
@@ -706,29 +708,29 @@ async function xuatExcelPhoThong() {
       const colWidths = {
         1: 5,   // STT
         2: 12,  // Mã TRA
-        3: 15,  // Họ tên
+        3: 18,  // Họ tên (フリガナ/名前)
         4: 12,  // Ngày sinh
         5: 6,   // Tuổi
-        6: 5,   // Giới tính
-        7: 8,   // Hôn nhân
-        8: 15,  // Xã
-        9: 15,  // Huyện
-        10: 15, // Tỉnh
+        6: 6,   // Giới tính
+        7: 10,  // Hôn nhân
+        8: 16,  // Xã
+        9: 16,  // Huyện
+        10: 16, // Tỉnh
         11: 10, // Khoảng cách
-        12: 12, // Chiều cao
+        12: 10, // Chiều cao
         13: 10, // Cân nặng
-        14: 8,  // Nhóm máu
-        15: 6,  // Tay thuận
-        16: 8,  // Thị lực phải
-        17: 8,  // Thị lực trái
-        18: 8,  // ...
-        19: 8,  // ...
+        14: 10, // Nhóm máu
+        15: 8,  // Tay thuận
+        16: 10, // Thị lực phải
+        17: 10, // Thị lực trái
+        18: 10, // ...
+        19: 10, // ...
         20: 12, // Học vấn từ
         21: 12, // Học vấn đến
-        22: 15, // Tỉnh học vấn
-        23: 25, // Trường học
-        24: 15, // Khoa học
-        123: 40 // Lý do đến Nhật (日本に興味を持っていること)
+        22: 16, // Tỉnh học vấn
+        23: 28, // Trường học
+        24: 16, // Khoa học
+        123: 45 // Lý do đến Nhật (日本に興味を持っていること)
       };
       Object.entries(colWidths).forEach(([col, width]) => {
         wsMeibo.getColumn(parseInt(col, 10)).width = width;

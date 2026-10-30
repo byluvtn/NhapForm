@@ -467,10 +467,7 @@
     <button type="button" id="btnXuatExcelFull" class="bg-indigo-600 text-white px-4 py-2 rounded font-semibold">Xuất Excel</button>
     <button type="button" id="btnNhapExcel" class="bg-amber-600 text-white px-4 py-2 rounded font-semibold">📂 Nhập từ Excel</button>
     <input type="file" id="inputNhapExcel" accept=".xlsx,.xlsm" class="hidden" />
-    <button type="button" id="btnOcrPdf" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">📄 OCR từ ảnh/PDF</button>
-    <input type="file" id="inputOcrPdf" accept="image/*,.pdf" class="hidden" />
   </div>
-  <div id="ocrStatus" class="text-sm text-gray-600 mt-2"></div>
 
   <!-- DANH SÁCH HỌC SINH -->
   <fieldset class="border rounded p-4">
@@ -561,14 +558,11 @@
   })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="js/katakana.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/templates.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/excel-export.js"></script>
 <script src="js/excel-import.js"></script>
-<script src="js/ocr-import.js"></script>
 </body>
 </html>

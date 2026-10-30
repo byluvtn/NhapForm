@@ -17,37 +17,21 @@ function populateSelect(selectEl, options) {
  * Đổ các select tĩnh dùng chung (giới tính, hôn nhân, nhóm máu, tay thuận...)
  */
 function initStaticSelects() {
-  populateSelect(document.getElementById("gioiTinh"), GENDER_OPTIONS);
-  populateSelect(document.getElementById("honNhan"), MARITAL_STATUS_OPTIONS);
-  populateSelect(document.getElementById("nhomMau"), BLOOD_TYPE_OPTIONS);
-  populateSelect(document.getElementById("tayThuan"), HANDEDNESS_OPTIONS);
+  const gioiTinh = document.getElementById("gioiTinh");
+  const honNhan = document.getElementById("honNhan");
+  const nhomMau = document.getElementById("nhomMau");
+  const tayThuan = document.getElementById("tayThuan");
+  const hutThuoc = document.getElementById("hutThuoc");
+  const xamMinh = document.getElementById("xamMinh");
+  const muMau = document.getElementById("muMau");
 
-  // --- Đời tư & Hôn nhân (SCI) ---
-  populateSelect(document.getElementById("tienSuLyHon"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("coNguoiYeu"), NGUOI_YEU_OPTIONS);
-
-  // --- Thói quen & Bệnh lý (SCI) ---
-  populateSelect(document.getElementById("hutThuoc"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("uongRuou"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("xamMinh"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("muMau"), MU_MAU_OPTIONS);
-  populateSelect(document.getElementById("benhManTinh"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("diUngSci"), KHONG_CO_OPTIONS);
-  populateSelect(document.getElementById("benhDaLieuSci"), KHONG_CO_OPTIONS);
-
-  // --- Kinh nghiệm sống tập thể (SCI) ---
-  populateSelect(document.getElementById("tungSongTapThe"), YES_NO_OPTIONS);
-  populateSelect(
-    document.getElementById("donViThoiGianSongTapThe"),
-    THOI_GIAN_UNIT_OPTIONS,
-  );
-
-  // --- Người thân / người quen tại Nhật (SCI) ---
-  populateSelect(document.getElementById("coNguoiQuenNhat"), YES_NO_OPTIONS);
-  document.getElementById("coNguoiQuenNhat").value = "khong";
-
-  // --- Kế hoạch đi Nhật (SCI) ---
-  populateSelect(document.getElementById("giaDinhDongY"), DONG_Y_GIA_DINH_OPTIONS);
+  if (gioiTinh) populateSelect(gioiTinh, GENDER_OPTIONS);
+  if (honNhan) populateSelect(honNhan, MARITAL_STATUS_OPTIONS);
+  if (nhomMau) populateSelect(nhomMau, BLOOD_TYPE_OPTIONS);
+  if (tayThuan) populateSelect(tayThuan, HANDEDNESS_OPTIONS);
+  if (hutThuoc) populateSelect(hutThuoc, KHONG_CO_OPTIONS);
+  if (xamMinh) populateSelect(xamMinh, KHONG_CO_OPTIONS);
+  if (muMau) populateSelect(muMau, MU_MAU_OPTIONS);
 
   applyDefaultSciValues();
 
@@ -188,6 +172,8 @@ function setFormMode(mode) {
 
   const standardBtn = document.getElementById("modeStandardBtn");
   const sciBtn = document.getElementById("modeSciBtn");
+  if (!standardBtn || !sciBtn) return;
+
   const activeClasses = ["bg-blue-600", "text-white"];
   const inactiveClasses = ["text-gray-600", "hover:bg-gray-100"];
 
@@ -209,6 +195,7 @@ function setFormMode(mode) {
  */
 function renderEducationRows() {
   const tbody = document.getElementById("educationTableBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   EDUCATION_LEVELS.forEach((level) => {
@@ -298,6 +285,7 @@ function renumberCompanyBlocks() {
 
 function addCompanyRow() {
   const container = document.getElementById("companiesContainer");
+  if (!container) return;
   const currentCount = container.querySelectorAll(".company-block").length;
   if (currentCount >= MAX_COMPANIES) return;
 
@@ -333,6 +321,7 @@ function createFamilyRow(index) {
 
 function addFamilyRow() {
   const tbody = document.getElementById("familyTableBody");
+  if (!tbody) return;
   const currentCount = tbody.querySelectorAll(".family-row").length;
   if (currentCount >= MAX_FAMILY_MEMBERS) return;
 
@@ -345,6 +334,7 @@ function addFamilyRow() {
  */
 function renderSciQuestions() {
   const container = document.getElementById("sciQuestionsContainer");
+  if (!container) return;
   container.innerHTML = "";
 
   SCI_QUESTIONS.forEach((question) => {
