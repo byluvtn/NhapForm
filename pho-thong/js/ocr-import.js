@@ -13,6 +13,30 @@
     if (el) el.textContent = msg;
   }
 
+  // Hiển thị kết quả OCR thô để người dùng đối chiếu / copy tay
+  function showRawText(text) {
+    let box = document.getElementById('ocrRawBox');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'ocrRawBox';
+      box.className = 'mt-2 border rounded p-2 bg-gray-50';
+      const status = document.getElementById('ocrStatus');
+      if (status && status.parentNode) status.parentNode.insertBefore(box, status.nextSibling);
+      else document.body.appendChild(box);
+    }
+    box.innerHTML =
+      '<div class="flex items-center justify-between mb-1">' +
+      '<span class="text-sm font-semibold">Văn bản OCR nhận được (đối chiếu thủ công)</span>' +
+      '<button type="button" id="ocrRawToggle" class="text-xs text-blue-600 underline">Ẩn/Hiện</button>' +
+      '</div>' +
+      '<pre id="ocrRawPre" class="text-xs whitespace-pre-wrap max-h-64 overflow-auto bg-white border rounded p-2"></pre>';
+    const pre = box.querySelector('#ocrRawPre');
+    pre.textContent = text || '(không nhận diện được chữ nào)';
+    box.querySelector('#ocrRawToggle').addEventListener('click', () => {
+      pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+
   // Tesseract v5: createWorker(langs, oem, options) -> Promise<Worker>
   // Logger phải truyền qua options.logger (không phải tham số thứ 2)
   async function ensureWorker() {
@@ -118,7 +142,7 @@
 
     const honNhan = findAfter('Hôn nhân') || findAfter('Tình trạng hôn nhân');
     if (/đã kết hôn|đã có gia đình/i.test(honNhan)) data.honNhan = 'Đã kết hôn';
-    else if (/độc thân|chưa kết hôn/i.test(honNhan)) data.honNhan = 'Độc thân';
+    else if (/độc thân|chưa kết hôn/i.test(honNhan)) data.honNhan = 'Chưa kết hôn';
 
     data.ngheNghiep = findAfter('Nghề nghiệp') || findAfter('Công việc hiện tại');
     data.lyDoDiNhat = findAfter('Lý do đến Nhật') || findAfter('Lý do muốn đến Nhật') || findAfter('Mục đích');
@@ -132,24 +156,36 @@
       if (el && val) {
         el.value = val;
         el.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
       }
+      return false;
     };
 
-    if (data.hoTen) set('hoTen', data.hoTen);
-    if (data.ngaySinh) set('ngaySinh', data.ngaySinh);
-    if (data.gioiTinh) set('gioiTinh', data.gioiTinh);
-    if (data.danToc) set('danToc', data.danToc);
-    if (data.tonGiao) set('tonGiao', data.tonGiao);
-    if (data.noiSinh) set('noiSinh', data.noiSinh);
-    if (data.noiOHienTai) set('diaChiHienTai', data.noiOHienTai);
-    if (data.soCmnd) set('soCmnd', data.soCmnd);
-    if (data.ngayCap) set('ngayCap', data.ngayCap);
-    if (data.noiCap) set('noiCap', data.noiCap);
-    if (data.queQuan) set('queQuan', data.queQuan);
-    if (data.trinhDo) set('trinhDo', data.trinhDo);
-    if (data.honNhan) set('honNhan', data.honNhan);
-    if (data.ngheNghiep) set('ngheNghiep', data.ngheNghiep);
-    if (data.lyDoDiNhat) set('lyDoDiNhat', data.lyDoDiNhat);
+    const filled = [];
+    if (data.hoTen && set('hoTen', data.hoTen)) filled.push('hoTen');
+    if (data.ngaySinh && set('ngaySinh', data.ngaySinh)) filled.push('ngaySinh');
+    if (data.gioiTinh && set('gioiTinh', data.gioiTinh)) filled.push('gioiTinh');
+    if (data.tonGiao && set('tonGiao', data.tonGiao)) filled.push('tonGiao');
+    if (data.honNhan && set('honNhan', data.honNhan)) filled.push('honNhan');
+    // Địa chỉ: form có diaChiXa / diaChiHuyen / diaChiTinh
+    if (data.noiOHienTai) {
+      if (set('diaChiXa', data.noiOHienTai)) filled.push('diaChiXa');
+    }
+    // Các trường không có trong form hiện tại: lưu vào console để người dùng tham khảo
+    const extra = [];
+    if (data.danToc) extra.push('Dân tộc: ' + data.danToc);
+    if (data.noiSinh) extra.push('Nơi sinh: ' + data.noiSinh);
+    if (data.soCmnd) extra.push('Số CMND/CCCD: ' + data.soCmnd);
+    if (data.ngayCap) extra.push('Ngày cấp: ' + data.ngayCap);
+    if (data.noiCap) extra.push('Nơi cấp: ' + data.noiCap);
+    if (data.queQuan) extra.push('Quê quán: ' + data.queQuan);
+    if (data.trinhDo) extra.push('Trình độ: ' + data.trinhDo);
+    if (data.ngheNghiep) extra.push('Nghề nghiệp: ' + data.ngheNghiep);
+    if (data.lyDoDiNhat) extra.push('Lý do đến Nhật: ' + data.lyDoDiNhat);
+    if (extra.length) {
+      console.log('[OCR] Thông tin thêm (form không có ô tương ứng):\n' + extra.join('\n'));
+    }
+    console.log('[OCR] Đã điền các ô:', filled.join(', ') || '(không có)');
   }
 
   async function processFile(file) {
@@ -177,6 +213,7 @@
       if (imgSrc.startsWith('blob:')) URL.revokeObjectURL(imgSrc);
     }
 
+    showRawText(allText);
     const data = parseOcrText(allText);
     autoFillForm(data);
     setStatus('Hoàn tất OCR. Vui lòng kiểm tra và bổ sung thông tin còn thiếu.');
